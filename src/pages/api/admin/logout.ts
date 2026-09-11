@@ -1,0 +1,2 @@
+import type {APIRoute} from 'astro';import {runtime} from '../../../lib/env';import {sha256} from '../../../lib/auth';
+export const POST:APIRoute=async({cookies})=>{const token=cookies.get('vibe_admin')?.value;if(token)await runtime().DB.prepare('DELETE FROM admin_sessions WHERE token_hash=?').bind(await sha256(token)).run();cookies.delete('vibe_admin',{path:'/'});return Response.json({ok:true});};

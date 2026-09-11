@@ -1,0 +1,6 @@
+---
+import Photo from '../common/Photo.astro';import Icon from '../common/Icon.astro';import type {Location} from '../../types';
+interface Props {location:Location;count:number;}
+const {location:l,count}=Astro.props;
+---
+<a class="destination-card" href={`/locations/${l.slug}`}><Photo src={l.cover_image} alt={l.image_alt||l.name}/><div class="destination-copy"><span class="destination-count">{count} {count===1?'stay':'stays'} to discover</span><h3>{l.name}</h3><p>{l.subtitle}</p></div><span class="destination-arrow"><Icon name="arrow"/></span></a>

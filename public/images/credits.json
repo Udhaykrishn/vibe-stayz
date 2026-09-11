@@ -1,0 +1,50 @@
+[
+  {
+    "destination": "Vagamon",
+    "path": "/workspace/scratch/53f4064cec17/destination_assets/vagamon.jpg",
+    "title": "Western Ghats as seen from Vagamon View Point",
+    "author": "Anand2202",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Western_Ghats_as_seen_from_Vagamon_View_Point.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/a/af/Western_Ghats_as_seen_from_Vagamon_View_Point.jpg",
+    "alt": "Green Western Ghats hills seen from Vagamon View Point beneath a cloudy sky",
+    "changes": "None to downloaded original"
+  },
+  {
+    "destination": "Munnar",
+    "path": "/workspace/scratch/53f4064cec17/destination_assets/munnar.jpg",
+    "title": "Farm Fields of Munnar",
+    "author": "Ravi Pinisetti",
+    "license": "CC0 1.0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Farm_Fields_of_Munnar_(Unsplash).jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/4/48/Farm_Fields_of_Munnar_%28Unsplash%29.jpg",
+    "alt": "Tea plantations covering the misty hills of Munnar",
+    "changes": "None to downloaded original"
+  },
+  {
+    "destination": "Wayanad",
+    "path": "/workspace/scratch/53f4064cec17/destination_assets/wayanad.jpg",
+    "title": "Chembra Peak Heart Lake",
+    "author": "Ravi Dwivedi",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Chembra_Peak_Heart_Lake.jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e1/Chembra_Peak_Heart_Lake.jpg",
+    "alt": "Heart-shaped Chembra Lake surrounded by grassy mountain slopes in Wayanad",
+    "changes": "None to downloaded original"
+  },
+  {
+    "destination": "Kochi",
+    "path": "/workspace/scratch/53f4064cec17/destination_assets/kochi-nets.jpg",
+    "title": "Chinese Fishing Nets",
+    "author": "Mike Prince",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0/",
+    "sourceUrl": "https://commons.wikimedia.org/wiki/File:Chinese_Fishing_Nets_(5799658751).jpg",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/e/ed/Chinese_Fishing_Nets_%285799658751%29.jpg",
+    "alt": "Chinese fishing nets beside the palm-lined waterfront in Kochi",
+    "changes": "None to downloaded original"
+  }
+]

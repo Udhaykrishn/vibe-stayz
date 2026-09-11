@@ -1,0 +1,6 @@
+---
+import type {SiteData} from '../../types';import Photo from '../common/Photo.astro';import Icon from '../common/Icon.astro';import {whatsappLink} from '../../utils/format';
+interface Props {offer:SiteData['offers'][number];settings:SiteData['settings'];}
+const {offer:o,settings}=Astro.props;const href=o.cta_type==='resort'&&o.resorts[0]?`/resorts/${o.resorts[0].slug}`:whatsappLink(settings);
+---
+<article class="offer-card"><div class="offer-image"><Photo src={o.image} alt={o.title}/><span class="photo-tag">{o.badge||'Escape idea'}</span></div><div class="offer-copy"><p class="eyebrow">{o.promotional_text}</p><h3>{o.title}</h3><p>{o.description}</p><a href={href} class="text-link">{o.cta_label}<Icon name="arrow" size={18}/></a></div></article>

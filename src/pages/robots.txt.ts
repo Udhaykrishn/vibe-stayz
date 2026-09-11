@@ -1,0 +1,2 @@
+import type {APIRoute} from 'astro';import {runtime} from '../lib/env';import {siteData} from '../services/data';
+export const GET:APIRoute=async({url})=>{const data=await siteData();const origin=runtime().SITE_ORIGIN||url.origin;return new Response(`User-agent: *\n${data.settings.show_demo?'Disallow: /':'Allow: /\nDisallow: /admin\nDisallow: /api/'}\nSitemap: ${origin}/sitemap.xml\n`,{headers:{'content-type':'text/plain;charset=utf-8'}});};

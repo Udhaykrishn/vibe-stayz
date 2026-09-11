@@ -1,0 +1,32 @@
+{
+  "name": "vibe-stayz",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build && node scripts/stage.mjs",
+    "check": "astro check",
+    "db:generate": "drizzle-kit generate",
+    "db:local": "wrangler d1 migrations apply vibe-stayz --local",
+    "preview": "astro preview --host 0.0.0.0 --port 4173"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "14.3.1",
+    "@fontsource-variable/dm-sans": "^5.3.0",
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@tailwindcss/vite": "^4.1.0",
+    "astro": "7.3.2",
+    "drizzle-orm": "^0.44.5",
+    "tailwindcss": "^4.1.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@cloudflare/workers-types": "^5.20260908.1",
+    "drizzle-kit": "^0.31.4",
+    "sharp": "^0.34.3",
+    "typescript": "^5.9.2",
+    "wrangler": "^4.0.0"
+  }
+}

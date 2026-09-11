@@ -1,0 +1,4 @@
+---
+import PublicLayout from '../layouts/PublicLayout.astro';import {siteData} from '../services/data';import credits from '../../public/images/credits.json';const data=await siteData();
+---
+<PublicLayout data={data} title="Image credits"><div class="container section"><p class="eyebrow">WITH THANKS</p><h1>Photography & image credits</h1><div class="credits-list">{credits.map(c=><div><h2 style="font-size:28px">{c.destination}</h2><p><a href={c.sourceUrl} target="_blank" rel="noopener noreferrer">{c.title}</a> by {c.author} · <a href={c.licenseUrl} target="_blank" rel="noopener noreferrer">{c.license}</a></p><p>Resized and converted to WebP. Display crops may vary. Adapted images retain their original licence.</p></div>)}<p>Vibe Stayz branding was provided by the project owner. Sample property images are original AI-generated illustrations for this preview and do not represent existing accommodation.</p></div></div></PublicLayout>

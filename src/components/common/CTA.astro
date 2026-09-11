@@ -1,0 +1,6 @@
+---
+import Icon from './Icon.astro';import type {SiteData} from '../../types';import {content,whatsappLink} from '../../utils/format';
+interface Props {data:SiteData;}
+const {data}=Astro.props;const c=content(data.content,'home','cta');
+---
+<section class="cta-section"><div class="container cta-inner"><div><p class="eyebrow">{c?.eyebrow}</p><h2>{c?.title}</h2></div><div><p>{c?.body}</p><a href={whatsappLink(data.settings)} class="button button-lime"><Icon name="whatsapp" size={20}/>{data.settings.cta_label}</a><a href={c?.cta_url||'/resorts'} class="text-link light">{c?.cta_label||'Explore resorts'}<Icon name="arrow" size={18}/></a></div></div></section>
