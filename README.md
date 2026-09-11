@@ -1,40 +1,80 @@
 # Vibe Stayz
 
-Astro 7, TypeScript and Tailwind 4 resort discovery site with a server-rendered administration CMS. No customer accounts, booking engine, live availability or payments.
+Next.js 16 App Router, TypeScript, Tailwind CSS 4 and Supabase resort-discovery site with a server-rendered administration CMS. The existing visual design, routes, content model and browser interactions are retained. There are no customer accounts, booking engine, live availability or payments.
+
+## Supabase setup
+
+1. Create a Supabase project.
+2. In the project dashboard, open **SQL Editor**, paste `supabase/migrations/20260911000000_initial_schema.sql`, and run it once. This creates the content tables, enables Row Level Security, and creates the public `media` Storage bucket.
+3. Open **Project Settings → Data API** and copy the Project URL and server secret/service-role key.
+4. Copy `.env.example` to `.env.local` and fill in the values below.
+
+The app only accesses Supabase from Next.js Server Components and Route Handlers. `SUPABASE_SERVICE_ROLE_KEY` bypasses RLS, so it must remain a server-only Vercel environment variable and must never be named with a `NEXT_PUBLIC_` prefix.
+
+If you use the Supabase CLI instead of the SQL Editor, authenticate and link the project, then run `npm run db:push`.
+
+## Environment variables
+
+| Variable | Required | Purpose |
+| --- | --- | --- |
+| `SUPABASE_URL` | Yes | Supabase project URL, such as `https://project-ref.supabase.co`. |
+| `SUPABASE_SERVICE_ROLE_KEY` | Yes | Server-only Supabase secret/service-role key used for database and Storage access. |
+| `SUPABASE_STORAGE_BUCKET` | No | Storage bucket name. Defaults to `media`; the migration creates this bucket. |
+| `ADMIN_USERNAME` | No | CMS login username. Defaults to `admin`. |
+| `ADMIN_PASSWORD_HASH` | Yes for `/admin` | PBKDF2-SHA256 password hash in `salt:hex` format. The plaintext password is never stored. |
+| `DEMO_MODE` | No | Set to `true` only when initially loading the included sample locations, stays, offers and testimonial. Use `false` for a clean production collection. |
+| `SITE_ORIGIN` | Yes in production | Canonical site origin. Locally use `http://localhost:3000`; in Vercel use the final `https://…` domain without a trailing slash. |
+
+Generate an admin password hash without saving the plaintext password in the repository:
+
+```bash
+read -s "ADMIN_PASSWORD?Admin password: "
+export ADMIN_PASSWORD
+node -e "const c=require('node:crypto');const s=c.randomBytes(16).toString('hex');console.log(s+':'+c.pbkdf2Sync(process.env.ADMIN_PASSWORD,s,100000,32,'sha256').toString('hex'))"
+unset ADMIN_PASSWORD
+```
+
+Copy the printed value into `ADMIN_PASSWORD_HASH`. If credentials are rotated, delete rows from `admin_sessions` in Supabase to revoke existing logins.
 
 ## Run locally
 
-1. `npm ci`
-2. Copy `.env.example` to `.env` and configure the server-only admin values. Use `DEMO_MODE=true` only for sample content.
-3. `npm run db:local`
-4. `npm run dev`
+```bash
+npm ci
+cp .env.example .env.local
+# Fill in the real Supabase and admin values in .env.local
+npm run dev
+```
 
-`npm run check` checks Astro and strict TypeScript. `npm run build` generates the server-rendered application and static assets. The site does not need React.
+Open `http://localhost:3000`. The CMS is at `http://localhost:3000/admin`.
 
-## Admin credentials
+Useful checks:
 
-There is no registration or password reset page. The administrator username and password hash are controlled by server environment configuration and are never included in source or browser JavaScript. Generate a replacement hash using Node's `crypto.pbkdf2Sync(password, salt, 100000, 32, 'sha256')`, where the salt is a random hexadecimal string. Set `ADMIN_PASSWORD_HASH` to `salt:hex`. Revoke existing sessions by clearing `admin_sessions` when rotating credentials. Production cookies require HTTPS; sign-in sessions expire after eight hours. Writes require an authenticated session, a CSRF token and a matching Origin header.
+```bash
+npm run check
+npm run build
+npm start
+```
 
-## Content management
+## Deploy to Vercel
 
-- `/admin`: summaries and recent updates.
-- Resorts: create/edit, publish/unpublish, feature, archive/restore, order, capacities, pricing notes, address visibility, SEO, WhatsApp overrides, highlights, rules, reusable amenities and gallery ordering.
-- Locations: publish/unpublish, feature, order and SEO.
-- Amenities, offers, testimonials and nearby attractions: create/edit/remove. Offers have inclusive UTC display dates and linked resorts, without discount calculations.
-- Site content: edit the existing named sections for Home, About, Contact, Resorts, Locations and Offers. Section keys identify the layout slots; retain existing keys.
-- Settings: branding, contact details, enquiry templates, social links, default SEO and sample-content visibility.
-- Media: upload JPEG, PNG or WebP. Browser processing resizes to a maximum 1920px long edge and encodes WebP; the server checks size and file signatures. Gallery removal does not delete an uploaded original, so another record cannot be broken by removing a gallery image.
+Import the GitHub repository in Vercel and add the same environment variables under **Project Settings → Environment Variables** for Production and Preview. Change `SITE_ORIGIN` to the production custom domain. Vercel detects Next.js automatically and runs `npm run build`.
 
-## Before public launch
+The Vercel CLI is not installed globally on this machine. Installing it with `npm i -g vercel` enables `vercel env pull`, `vercel deploy`, and `vercel logs`; the dashboard workflow works without it.
 
-1. Add the real WhatsApp number (country code + number, digits only), phone, email, address and business hours in Settings. No fabricated contact information ships. Until configured, WhatsApp buttons lead to Contact and the enquiry form explains that enquiries are not open.
-2. Replace sample stays, guest stories, pricing and property photos with approved client content. Sample records are flagged `is_demo`. Turn off “Show sample collection” in Settings to hide them. Demo mode emits `noindex` and disallows crawling. The mode does not automatically turn off after editing one record.
-3. Review and replace default page copy and generated hero/story imagery if appropriate. Provided brand assets are preserved. Real destination photographs and their licenses are listed at `/image-credits`; WebP adaptations retain the corresponding license.
-4. Set `SITE_ORIGIN` to the final custom domain for canonical, sharing and property enquiry URLs.
-5. Complete visual/device QA at 360, 390, 430, 768, 1024, 1280 and 1440px. Do not treat the target Lighthouse scores as measured results.
+## Content and launch notes
+
+- `/admin` manages resorts, locations, amenities, offers, guest stories, attractions, navigation, site sections, settings and Supabase-hosted media.
+- Browser-side uploads are resized to a maximum 1920px long edge and encoded as WebP before the server validates and uploads them to Supabase Storage.
+- `DEMO_MODE=true` controls whether sample records are inserted on the first empty database initialization. The **Show sample collection** setting controls whether those rows are publicly visible later.
+- Before launch, add the real WhatsApp number, phone, email, address and hours; replace or remove sample content; turn off **Show sample collection**; and set the final `SITE_ORIGIN`.
+- Filtered resort pages and sample/detail previews are `noindex`. The dynamic `robots.txt` and `sitemap.xml` reflect the launch state.
 
 ## Architecture
 
-`src/services/data.ts` contains prepared database queries and public visibility filtering; `src/lib/seed.ts` isolates optional samples. Schema lives in `db/schema.ts`, with generated schema-only migrations in `drizzle/`. Admin edits write directly to persistent storage and appear on the next request. Gallery and amenity associations use relational tables and transactional batches. Private property addresses and maps are stripped from public view models when visibility is off.
+- `src/app/` contains the Next.js App Router pages, protected admin routes and Route Handlers.
+- `src/services/data.ts` reads and assembles the public/admin view models through the server-only Supabase client.
+- `src/lib/seed.ts` inserts the base page/navigation content and optional sample collection into an empty Supabase project.
+- `supabase/migrations/` contains the cloud database and Storage schema.
+- `src/styles/` contains the original site, property and admin CSS. The migration does not redesign those styles.
 
-All public routes render on the server. JavaScript is limited to menu/dialog interactions, sorting, sharing, contact handoff and admin forms. Native `<dialog>` provides modal focus handling. No third-party analytics or cookie banner is needed for the present feature set.
+Admin sessions use an HTTP-only, Secure-in-production, SameSite=Strict cookie and expire after eight hours. Mutating admin requests require a matching Origin and CSRF token.

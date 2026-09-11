@@ -1,0 +1,77 @@
+const paths: Record<string, string> = {
+  arrow: "M4 12h16m-6-6 6 6-6 6",
+  chevron: "m9 5 7 7-7 7",
+  search: "M21 21l-5.5-5.5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0",
+  pin: "M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0ZM15 10a3 3 0 1 1-6 0 3 3 0 0 1 6 0",
+  mountain: "m3 20 7-15 4 8 3-5 6 12H3Zm5-10 2 3 2-3",
+  leaf: "M20 3C5 1 1 8 5 15s17 6 15-12ZM5 20 16 9M10 15v-5m0 5h5",
+  trees: "m8 3-5 7h3l-5 7h14l-5-7h3L8 3Zm0 14v5M17 3l5 8h-3l4 7h-6m1 0v4",
+  waves: "M2 8q3-3 6 0t6 0 8 0M2 14q3-3 6 0t6 0 8 0M2 20q3-3 6 0t6 0 8 0",
+  users:
+    "M16 21v-3a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v3M13 6a4 4 0 1 1-8 0 4 4 0 0 1 8 0M17 3a4 4 0 0 1 0 8m5 10v-3a4 4 0 0 0-3-3.87",
+  bed: "M3 18v3m18-3v3M3 11V4h18v7M3 18h18v-5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v5ZM7 7h3v4H7zm7 0h3v4h-3z",
+  bath: "M4 12V5a3 3 0 0 1 6 0M2 12h20v3a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5v-3Zm4 8v2m12-2v2",
+  wifi: "M2 8a17 17 0 0 1 20 0M5 12a12 12 0 0 1 14 0m-10 4a5 5 0 0 1 6 0m-3 4h.01",
+  snowflake: "M12 2v20M3 7l18 10M3 17 21 7m-12-3 3 3 3-3m-6 16 3-3 3 3",
+  utensils: "M4 2v7a3 3 0 0 0 6 0V2M7 2v20M20 2c-4 3-4 10 0 10v10V2Z",
+  car: "m5 3-3 9v7h3v-3h14v3h3v-7l-3-9H5Zm-3 9h20M5 12V8h14v4M6 14h.01M18 14h.01",
+  flame:
+    "M12 2c4 5-2 6 2 10 1-2 3-3 3-5 8 11 1 15-5 15S0 17 6 9c0 3 2 4 3 4-2-5 5-6 3-11Z",
+  coffee:
+    "M18 8h1a3 3 0 0 1 0 6h-1M3 7h15v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V7ZM6 2v2m4-2v2m4-2v2M2 22h18",
+  paw: "M9 14c3-3 6-1 8 3 2 5-3 5-5 3-4 4-9-1-5-4l2-2ZM7 6a2 3 0 1 1-4 0 2 3 0 0 1 4 0Zm6-2a2 3 0 1 1-4 0 2 3 0 0 1 4 0Zm6 2a2 3 0 1 1-4 0 2 3 0 0 1 4 0Zm4 6a2 3 0 1 1-4 0 2 3 0 0 1 4 0",
+  shield: "m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6l8-4Zm-4 9 3 3 5-5",
+  heart:
+    "M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z",
+  headphones:
+    "M3 14v-3a9 9 0 0 1 18 0v3M3 12h3v8H3V12Zm15 0h3v8h-3v-8ZM18 20c0 2-3 2-6 2",
+  check: "m5 12 4 4L19 6",
+  close: "m6 6 12 12M6 18 18 6",
+  menu: "M4 6h16M4 12h16M4 18h16",
+  grid: "M3 3h7v7H3zm11 0h7v7h-7zM3 14h7v7H3zm11 0h7v7h-7z",
+  mail: "M3 4h18v16H3V4Zm0 1 9 8 9-8",
+  phone:
+    "M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 2 2h3l2 6-2 2a16 16 0 0 0 9 9l2-2 6 2Z",
+  clock: "M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0ZM12 6v6l4 2",
+  star: "m12 2 3 6 7 1-5 5 1 8-6-4-6 4 1-8-5-5 7-1 3-6Z",
+  settings:
+    "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM9 2h6l1 4 4 1 2 5-3 3v5l-5 2-3-3H6l-4-4 2-5V5l5-3Z",
+  edit: "m16 3 5 5-13 13H3v-5L16 3Zm-2 2 5 5",
+  plus: "M12 5v14M5 12h14",
+  image: "M3 3h18v18H3V3Zm0 14 6-6 4 4 3-3 5 5M15 7h.01",
+  logout: "M9 3H3v18h6m7-16 6 7-6 7m-7-7h13",
+  file: "M14 2H4v20h16V8l-6-6Zm0 0v6h6M8 13h8m-8 4h8",
+  offer: "M2 3h9l11 11-8 8L3 11 2 3Zm5 4h.01",
+  external: "M15 3h6v6M10 14 21 3M10 3H3v18h18v-7",
+  instagram:
+    "M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5ZM16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm1-6h.01",
+  whatsapp:
+    "M21 11.5a9 9 0 0 1-13.4 7.9L2 21l1.6-5.3A9 9 0 1 1 21 11.5ZM8 7c-2 1 1 6 5 8 2 1 4 0 3-2l-2-1-1 1c-2-1-3-2-3-3l1-1-1-2H8Z",
+};
+
+export default function Icon({
+  name = "arrow",
+  size = 22,
+  className = "",
+}: {
+  name?: string;
+  size?: number;
+  className?: string;
+}) {
+  return (
+    <svg
+      className={className}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d={paths[name] || paths.check} />
+    </svg>
+  );
+}

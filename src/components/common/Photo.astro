@@ -1,6 +1,0 @@
----
-import {imageSet} from '../../utils/format';
-interface Props {src:string;alt:string;class?:string;eager?:boolean;sizes?:string;}
-const {src,alt,class:cls='',eager=false,sizes='(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw'}=Astro.props;
----
-<img src={src||'/images/heritage-640.webp'} srcset={imageSet(src)} sizes={sizes} alt={alt} class={cls} width="1680" height="1120" loading={eager?'eager':'lazy'} fetchpriority={eager?'high':'auto'} decoding="async" data-photo />

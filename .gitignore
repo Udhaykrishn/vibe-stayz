@@ -1,8 +1,12 @@
 node_modules/
 dist/
 .astro/
+.next/
 .vercel/
-local.db*
 .env
+.env.local
+.env.*.local
+.env.vercel
 *.log
+*.tsbuildinfo
 .DS_Store

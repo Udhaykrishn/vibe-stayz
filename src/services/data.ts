@@ -1,24 +1,198 @@
-import {runtime} from '../lib/env';
-import {initializeContent} from '../lib/seed';
-import type {SiteData,Settings,Resort,Location,Amenity,Offer,Testimonial,PageContent,NavItem,GalleryImage,Attraction} from '../types';
-const TABLES=['resorts','locations','amenities','offers','testimonials','page_content','navigation','nearby_attractions','site_settings','media'] as const;
-export type Entity=typeof TABLES[number];
-export const isEntity=(s:string):s is Entity=>(TABLES as readonly string[]).includes(s);
-export const db=()=>runtime().DB;
-export async function rows<T>(sql:string,...values:(string|number|null)[]){const result=await db().prepare(sql).bind(...values).all<T>();return result.results;}
-export async function siteData(admin=false):Promise<SiteData>{
- await initializeContent(runtime());
- const settings=(await db().prepare('SELECT * FROM site_settings WHERE id=?').bind('global').first<Settings>())!;
- const demo=admin||settings.show_demo?'':' AND is_demo=0';
- const [resorts,locations,amenities,offers,testimonials,content,navigation,gallery,relations,features,attractions,offerRelations]=await Promise.all([
- rows<Resort>(`SELECT * FROM resorts WHERE 1=1 ${admin?'':'AND published=1 AND archived=0'}${demo} ORDER BY display_order,name`),
- rows<Location>(`SELECT * FROM locations WHERE 1=1 ${admin?'':'AND published=1'}${demo} ORDER BY display_order,name`),
- rows<Amenity>(`SELECT * FROM amenities ${admin?'':'WHERE active=1'} ORDER BY display_order,name`),
- rows<Offer>(`SELECT * FROM offers WHERE 1=1 ${admin?'':"AND active=1 AND (start_date='' OR start_date <= date('now')) AND (end_date='' OR end_date >= date('now'))"}${demo} ORDER BY display_order,title`),
- rows<Testimonial>(`SELECT * FROM testimonials WHERE 1=1 ${admin?'':'AND published=1'}${demo} ORDER BY display_order`),
- rows<PageContent>('SELECT * FROM page_content ORDER BY display_order'),rows<NavItem>('SELECT * FROM navigation ORDER BY display_order'),
- rows<GalleryImage>('SELECT * FROM resort_images ORDER BY display_order'),rows<{resort_id:string;amenity_id:string}>('SELECT * FROM resort_amenities'),rows<{resort_id:string;kind:string;text:string}>('SELECT * FROM resort_features ORDER BY display_order'),rows<Attraction>('SELECT * FROM nearby_attractions ORDER BY display_order'),rows<{resort_id:string;offer_id:string}>('SELECT * FROM offer_resorts')
- ]);
- const views=resorts.filter(r=>locations.some(l=>l.id===r.location_id)).map(r=>({...r,...(!admin&&!r.show_address?{address:'',map_url:''}:{}),location:locations.find(l=>l.id===r.location_id)!,amenities:amenities.filter(a=>relations.some(x=>x.resort_id===r.id&&x.amenity_id===a.id)),gallery:gallery.filter(g=>g.resort_id===r.id),highlights:features.filter(f=>f.resort_id===r.id&&f.kind==='highlight').map(f=>f.text),rules:features.filter(f=>f.resort_id===r.id&&f.kind==='rule').map(f=>f.text),attractions:attractions.filter(a=>a.resort_id===r.id),offers:offers.filter(o=>offerRelations.some(x=>x.offer_id===o.id&&x.resort_id===r.id))}));
- return {settings,resorts:views,locations,amenities,offers:offers.map(o=>({...o,resorts:views.filter(r=>offerRelations.some(x=>x.offer_id===o.id&&x.resort_id===r.id))})),testimonials,content,navigation};
+import "server-only";
+import { runtime } from "../lib/env";
+import { initializeContent } from "../lib/seed";
+import type {
+  SiteData,
+  Settings,
+  Resort,
+  Location,
+  Amenity,
+  Offer,
+  Testimonial,
+  PageContent,
+  NavItem,
+  GalleryImage,
+  Attraction,
+} from "../types";
+
+const TABLES = [
+  "resorts",
+  "locations",
+  "amenities",
+  "offers",
+  "testimonials",
+  "page_content",
+  "navigation",
+  "nearby_attractions",
+  "site_settings",
+  "media",
+] as const;
+export type Entity = (typeof TABLES)[number];
+export const isEntity = (value: string): value is Entity =>
+  (TABLES as readonly string[]).includes(value);
+export const db = () => runtime().supabase;
+
+function fail(error: { message: string } | null, context: string) {
+  if (error) throw new Error(`${context}: ${error.message}`);
+}
+const byOrderName = <
+  T extends { display_order?: number; name?: string; title?: string },
+>(
+  a: T,
+  b: T,
+) =>
+  (a.display_order || 0) - (b.display_order || 0) ||
+  String(a.name || a.title || "").localeCompare(
+    String(b.name || b.title || ""),
+  );
+
+export async function tableRows<T>(entity: Entity): Promise<T[]> {
+  const result = await db().from(entity).select("*");
+  fail(result.error, `Load ${entity}`);
+  return (result.data || []) as T[];
+}
+
+export async function recordById<T>(
+  entity: Entity,
+  id: string,
+): Promise<T | null> {
+  const result = await db().from(entity).select("*").eq("id", id).maybeSingle();
+  fail(result.error, `Load ${entity}`);
+  return result.data as T | null;
+}
+
+export async function siteData(admin = false): Promise<SiteData> {
+  const env = runtime();
+  await initializeContent(env);
+  const settingsResult = await db()
+    .from("site_settings")
+    .select("*")
+    .eq("id", "global")
+    .single();
+  fail(settingsResult.error, "Load settings");
+  const settings = settingsResult.data as Settings;
+  const results = await Promise.all([
+    db().from("resorts").select("*"),
+    db().from("locations").select("*"),
+    db().from("amenities").select("*"),
+    db().from("offers").select("*"),
+    db().from("testimonials").select("*"),
+    db().from("page_content").select("*"),
+    db().from("navigation").select("*"),
+    db().from("resort_images").select("*"),
+    db().from("resort_amenities").select("*"),
+    db().from("resort_features").select("*"),
+    db().from("nearby_attractions").select("*"),
+    db().from("offer_resorts").select("*"),
+  ]);
+  results.forEach((result, index) =>
+    fail(result.error, `Load site data ${index + 1}`),
+  );
+  const rawResorts = (results[0].data || []) as Resort[];
+  const rawLocations = (results[1].data || []) as Location[];
+  const rawAmenities = (results[2].data || []) as Amenity[];
+  const rawOffers = (results[3].data || []) as Offer[];
+  const rawTestimonials = (results[4].data || []) as Testimonial[];
+  const showDemo = admin || !!settings.show_demo;
+  const visible = <T extends { is_demo: number }>(items: T[]) =>
+    showDemo ? items : items.filter((item) => !item.is_demo);
+  const today = new Date().toISOString().slice(0, 10);
+  const locations = visible(rawLocations)
+    .filter((item) => admin || !!item.published)
+    .sort(byOrderName);
+  const amenities = visible(rawAmenities)
+    .filter((item) => admin || !!item.active)
+    .sort(byOrderName);
+  const offers = visible(rawOffers)
+    .filter(
+      (item) =>
+        admin ||
+        (!!item.active &&
+          (!item.start_date || item.start_date <= today) &&
+          (!item.end_date || item.end_date >= today)),
+    )
+    .sort(byOrderName);
+  const testimonials = visible(rawTestimonials)
+    .filter((item) => admin || !!item.published)
+    .sort(byOrderName);
+  const content = ((results[5].data || []) as PageContent[]).sort(byOrderName);
+  const navigation = ((results[6].data || []) as NavItem[]).sort(byOrderName);
+  const gallery = ((results[7].data || []) as GalleryImage[]).sort(byOrderName);
+  const relations = (results[8].data || []) as {
+    resort_id: string;
+    amenity_id: string;
+  }[];
+  const features = (
+    (results[9].data || []) as {
+      resort_id: string;
+      kind: string;
+      text: string;
+      display_order: number;
+    }[]
+  ).sort(byOrderName);
+  const attractions = ((results[10].data || []) as Attraction[]).sort(
+    byOrderName,
+  );
+  const offerRelations = (results[11].data || []) as {
+    resort_id: string;
+    offer_id: string;
+  }[];
+  const resorts = visible(rawResorts)
+    .filter((item) => admin || (!!item.published && !item.archived))
+    .sort(byOrderName);
+  const views = resorts
+    .filter((resort) =>
+      locations.some((location) => location.id === resort.location_id),
+    )
+    .map((resort) => ({
+      ...resort,
+      ...(!admin && !resort.show_address ? { address: "", map_url: "" } : {}),
+      location: locations.find(
+        (location) => location.id === resort.location_id,
+      )!,
+      amenities: amenities.filter((amenity) =>
+        relations.some(
+          (link) =>
+            link.resort_id === resort.id && link.amenity_id === amenity.id,
+        ),
+      ),
+      gallery: gallery.filter((image) => image.resort_id === resort.id),
+      highlights: features
+        .filter(
+          (feature) =>
+            feature.resort_id === resort.id && feature.kind === "highlight",
+        )
+        .map((feature) => feature.text),
+      rules: features
+        .filter(
+          (feature) =>
+            feature.resort_id === resort.id && feature.kind === "rule",
+        )
+        .map((feature) => feature.text),
+      attractions: attractions.filter(
+        (attraction) => attraction.resort_id === resort.id,
+      ),
+      offers: offers.filter((offer) =>
+        offerRelations.some(
+          (link) => link.offer_id === offer.id && link.resort_id === resort.id,
+        ),
+      ),
+    }));
+  return {
+    settings,
+    resorts: views,
+    locations,
+    amenities,
+    offers: offers.map((offer) => ({
+      ...offer,
+      resorts: views.filter((resort) =>
+        offerRelations.some(
+          (link) => link.offer_id === offer.id && link.resort_id === resort.id,
+        ),
+      ),
+    })),
+    testimonials,
+    content,
+    navigation,
+  };
 }

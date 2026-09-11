@@ -1,4 +1,0 @@
----
-import Icon from '../common/Icon.astro';
----
-<dialog id="media-picker" class="media-picker" aria-labelledby="media-title"><div class="picker-top"><div><h2 id="media-title">Choose a photograph</h2><p>Select an image or upload something new.</p></div><button type="button" class="icon-button" data-close-picker aria-label="Close image library"><Icon name="close"/></button></div><label class="upload-button button button-dark"><Icon name="plus" size={18}/>Upload image<input type="file" accept="image/jpeg,image/png,image/webp" data-media-upload hidden/></label><p class="upload-note">JPEG, PNG or WebP. Images are resized and optimized automatically.</p><p id="media-status" role="status"></p><div id="media-options" class="media-options"></div></dialog>

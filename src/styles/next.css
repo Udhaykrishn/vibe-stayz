@@ -1,0 +1,1 @@
+.sort-label{display:flex;gap:9px;align-items:center;font-size:12px}.sort-label select{border:0;background:transparent;color:var(--ink);font:inherit;max-width:145px}@media(max-width:450px){.results-head{gap:15px;align-items:flex-start}.sort-label{font-size:11px;gap:4px;flex-direction:column;align-items:flex-end}.sort-label select{max-width:135px}}
