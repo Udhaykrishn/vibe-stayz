@@ -1,4 +1,4 @@
-import type {D1PreparedStatement} from '@cloudflare/workers-types/index.ts';
+import type {PreparedStatement} from '../../../lib/database';
 import type {APIRoute} from 'astro';import {ZodError} from 'zod';import {cms} from '../../../lib/cms-config';import {runtime} from '../../../lib/env';import {validateFields,gallerySchema,idsSchema} from '../../../lib/validation';
 const usable=(entity:string)=>!!cms[entity];
 export const POST:APIRoute=async({request,params})=>{
@@ -11,7 +11,7 @@ export const POST:APIRoute=async({request,params})=>{
  if(!current){for(const f of cms[entity].groups.flatMap(g=>g.fields).filter(f=>f.required))if(fields[f.key]===undefined||fields[f.key]==='')return Response.json({error:`${f.label} is required.`,fields:{[f.key]:'This field is required.'}},{status:422});}
  if(entity==='offers'&&fields.start_date&&fields.end_date&&String(fields.end_date)<String(fields.start_date))return Response.json({error:'The end date must be on or after the start date.',fields:{end_date:'Choose a later date.'}},{status:422});
  if(entity==='testimonials'&&fields.resort_id==='')fields.resort_id=null;
- fields.updated_at=new Date().toISOString();const keys=Object.keys(fields);const batch:D1PreparedStatement[]=[];
+ fields.updated_at=new Date().toISOString();const keys=Object.keys(fields);const batch:PreparedStatement[]=[];
  if(current)batch.push(env.DB.prepare(`UPDATE ${entity} SET ${keys.map(k=>`${k}=?`).join(',')} WHERE id=?`).bind(...Object.values(fields),id));
  else batch.push(env.DB.prepare(`INSERT INTO ${entity} (id,${keys.join(',')}) VALUES (?,${keys.map(()=>'?').join(',')})`).bind(id,...Object.values(fields)));
  if(entity==='resorts'){

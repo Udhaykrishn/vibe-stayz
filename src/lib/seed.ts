@@ -1,9 +1,9 @@
-import type {D1PreparedStatement} from '@cloudflare/workers-types/index.ts';
+import type {PreparedStatement} from './database';
 import type {RuntimeEnv} from '../types';
 type Row=Record<string,string|number|null>;
 export async function initializeContent(env:RuntimeEnv){
  if(await env.DB.prepare('SELECT id FROM site_settings LIMIT 1').first())return;
- const now=new Date().toISOString();const stmts:D1PreparedStatement[]=[];
+ const now=new Date().toISOString();const stmts:PreparedStatement[]=[];
  const add=(table:string,record:Row)=>{const r={...record};stmts.push(env.DB.prepare(`INSERT OR IGNORE INTO ${table} (${Object.keys(r).join(',')}) VALUES (${Object.keys(r).map(()=>'?').join(',')})`).bind(...Object.values(r)));};
  const stamp={updated_at:now,is_demo:0};
  const sections=[

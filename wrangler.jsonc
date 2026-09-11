@@ -1,7 +1,0 @@
-{
-  "name":"vibe-stayz", "main":"@astrojs/cloudflare/entrypoints/server",
-  "compatibility_date":"2026-09-01", "compatibility_flags":["nodejs_compat"],
-  "d1_databases":[{"binding":"DB","database_name":"vibe-stayz","database_id":"local-vibe-stayz","migrations_dir":"drizzle"}],
-  "r2_buckets":[{"binding":"MEDIA","bucket_name":"vibe-stayz-media"}],
-  "vars":{"DEMO_MODE":"true"}
-}

@@ -4,7 +4,7 @@ export const POST:APIRoute=async({request,cookies,url})=>{
  try{
  if(Number(request.headers.get('content-length'))>4096)return Response.json({error:'Invalid sign-in request.'},{status:413});
  const {username,password}=await request.json() as {username:string;password:string};if(typeof password!=='string'||password.length>256||typeof username!=='string')return Response.json({error:'Please enter your username and password.'},{status:400});
- await initializeContent(env);const now=Date.now();const ip=request.headers.get('cf-connecting-ip')||'local';const key=await sha256(ip);const reset=now+15*60*1000;
+ await initializeContent(env);const now=Date.now();const ip=request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()||'local';const key=await sha256(ip);const reset=now+15*60*1000;
  const attempt=await env.DB.prepare('INSERT INTO login_attempts (key,attempts,reset_at) VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET attempts=CASE WHEN reset_at<? THEN 1 ELSE attempts+1 END, reset_at=CASE WHEN reset_at<? THEN ? ELSE reset_at END RETURNING attempts').bind(key,reset,now,now,reset).first<{attempts:number}>();
  if((attempt?.attempts||0)>8)return Response.json({error:'Too many sign-in attempts. Please try again in 15 minutes.'},{status:429,headers:{'Retry-After':'900'}});
  const valid=await checkPassword(password,env.ADMIN_PASSWORD_HASH);

@@ -1,9 +1,8 @@
 node_modules/
 dist/
 .astro/
-.wrangler/
-.sites-runtime/
+.vercel/
+local.db*
 .env
-.dev.vars
 *.log
 .DS_Store

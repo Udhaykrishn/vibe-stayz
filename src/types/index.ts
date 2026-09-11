@@ -1,4 +1,4 @@
-import type {D1Database,R2Bucket} from '@cloudflare/workers-types/index.ts';
+import type {Database} from '../lib/database';
 import type * as schema from '../../db/schema';
 export type Resort=typeof schema.resorts.$inferSelect;
 export type Location=typeof schema.locations.$inferSelect;
@@ -13,4 +13,4 @@ export type Attraction=typeof schema.nearbyAttractions.$inferSelect;
 export type Media=typeof schema.media.$inferSelect;
 export type ResortView=Resort & {location:Location; amenities:Amenity[]; gallery:GalleryImage[]; highlights:string[]; rules:string[]; attractions:Attraction[]; offers:Offer[]};
 export type SiteData={settings:Settings;resorts:ResortView[];locations:Location[];amenities:Amenity[];offers:(Offer & {resorts:ResortView[]})[];testimonials:Testimonial[];content:PageContent[];navigation:NavItem[]};
-export interface RuntimeEnv { DB:D1Database; MEDIA:R2Bucket; ADMIN_PASSWORD_HASH?:string; ADMIN_USERNAME?:string; DEMO_MODE?:string; SITE_ORIGIN?:string; }
+export interface RuntimeEnv { DB:Database; ADMIN_PASSWORD_HASH?:string; ADMIN_USERNAME?:string; DEMO_MODE?:string; SITE_ORIGIN?:string; }
