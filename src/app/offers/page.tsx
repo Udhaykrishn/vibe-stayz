@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import PublicLayout from "@/components/PublicLayout";
 import { CTA, OfferCard } from "@/components/Cards";
-import { siteData } from "@/services/data";
+import { publicData } from "@/services/data";
 import { content } from "@/utils/format";
 import { pageMetadata } from "@/lib/metadata";
 export async function generateMetadata(): Promise<Metadata> {
-  const data = await siteData();
+  const data = await publicData();
   const c = content(data.content, "offers", "hero");
   return pageMetadata(data, {
     title: "Offers & escape ideas",
@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 export default async function Offers() {
-  const data = await siteData();
+  const data = await publicData();
   const c = content(data.content, "offers", "hero");
   return (
     <PublicLayout data={data}>

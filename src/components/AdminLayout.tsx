@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { cms } from "@/lib/cms-config";
 import Icon from "./Icon";
 import AdminScripts from "./AdminScripts";
+import AdminDrawer from "./AdminDrawer";
 export default async function AdminLayout({
   title = "Dashboard",
   description = "",
@@ -37,6 +38,7 @@ export default async function AdminLayout({
         ],
       ),
     ["/admin/nearby_attractions", "Attractions", "mountain"],
+    ["/admin/preview", "Preview", "eye"],
     ["/admin/media", "Media library", "image"],
     ["/admin/navigation", "Navigation", "menu"],
     ["/admin/site_settings/global", "Settings", "settings"],
@@ -94,6 +96,7 @@ export default async function AdminLayout({
       </aside>
       <div className="admin-main">
         <header className="admin-topbar">
+          <AdminDrawer links={links}/>
           <p>
             Vibe Stayz <span>/</span> {title}
           </p>

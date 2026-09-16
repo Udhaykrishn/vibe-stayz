@@ -1,8 +1,8 @@
 import PublicLayout from "@/components/PublicLayout";
 import Icon from "@/components/Icon";
-import { siteData } from "@/services/data";
+import { publicData } from "@/services/data";
 export default async function NotFound() {
-  const data = await siteData();
+  const data = await publicData();
   return (
     <PublicLayout data={data}>
       <div className="container section">

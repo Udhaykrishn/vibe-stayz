@@ -12,6 +12,7 @@ export default function Gallery({
 }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [index, setIndex] = useState(0);
+  const touch = useRef(0);
   const show = (next: number) =>
     setIndex((next + images.length) % images.length);
   const open = () => {
@@ -27,6 +28,7 @@ export default function Gallery({
       <div
         className={`property-gallery${images.length < 3 ? " gallery-small" : ""}`}
         aria-label={`${name} photos`}
+        tabIndex={0}
       >
         {images.slice(0, 5).map((image, i) => (
           <button
@@ -64,6 +66,8 @@ export default function Gallery({
       <dialog
         ref={dialog}
         className="lightbox"
+        onTouchStart={e=>{touch.current=e.touches[0].clientX;}}
+        onTouchEnd={e=>{const dx=e.changedTouches[0].clientX-touch.current;if(Math.abs(dx)>60)show(index+(dx<0?1:-1));}}
         id="photo-lightbox"
         aria-labelledby="gallery-title"
         onKeyDown={(event) => {

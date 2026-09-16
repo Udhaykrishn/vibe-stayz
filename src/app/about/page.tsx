@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import PublicLayout from "@/components/PublicLayout";
 import Photo from "@/components/Photo";
 import { CTA, Trust } from "@/components/Cards";
-import { siteData } from "@/services/data";
+import { publicData } from "@/services/data";
 import { content, paragraphs } from "@/utils/format";
 import { pageMetadata } from "@/lib/metadata";
 export async function generateMetadata(): Promise<Metadata> {
-  const data = await siteData();
+  const data = await publicData();
   const hero = content(data.content, "about", "hero");
   return pageMetadata(data, {
     title: "Our story",
@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 export default async function About() {
-  const data = await siteData();
+  const data = await publicData();
   const hero = content(data.content, "about", "hero");
   const story = content(data.content, "about", "story");
   const mission = content(data.content, "about", "mission");

@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import ResortMap from "@/components/ResortMap";
+import StayPrice from "@/components/StayPrice";
 import { notFound } from "next/navigation";
 import PublicLayout from "@/components/PublicLayout";
 import Gallery from "@/components/Gallery";
@@ -6,14 +8,14 @@ import ShareButton from "@/components/ShareButton";
 import Icon from "@/components/Icon";
 import Photo from "@/components/Photo";
 import { ResortCard, SectionHeading } from "@/components/Cards";
-import { siteData } from "@/services/data";
+import { publicData } from "@/services/data";
 import { money, paragraphs, safeJson, whatsappLink } from "@/utils/format";
 import { pageMetadata } from "@/lib/metadata";
 import "@/styles/property.css";
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const data = await siteData();
+  const data = await publicData();
   const r = data.resorts.find((x) => x.slug === slug);
   return r
     ? pageMetadata(data, {
@@ -27,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function ResortPage({ params }: Props) {
   const { slug } = await params;
-  const data = await siteData();
+  const data = await publicData();
   const r = data.resorts.find((x) => x.slug === slug);
   if (!r) notFound();
   const origin = process.env.SITE_ORIGIN || "http://localhost:3000";
@@ -194,54 +196,6 @@ export default async function ResortPage({ params }: Props) {
                 </p>
               )}
             </section>
-            <section id="location" className="property-section">
-              <p className="eyebrow">YOUR SURROUNDINGS</p>
-              <h2>A little about {r.location.name}.</h2>
-              <div className="prose">
-                <p>{r.location.description}</p>
-                {r.show_address === 1 && r.address && (
-                  <p>
-                    <strong>Property address</strong>
-                    <br />
-                    {r.address}
-                  </p>
-                )}
-              </div>
-              <a href={`/locations/${r.location.slug}`} className="text-link">
-                Explore {r.location.name}
-                <Icon name="arrow" size={17} />
-              </a>
-              {r.show_address === 1 && r.map_url && (
-                <a
-                  href={r.map_url}
-                  className="map-link"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <Icon name="pin" />
-                  View property location on map
-                  <Icon name="external" size={17} />
-                </a>
-              )}
-              {r.attractions.length > 0 && (
-                <div className="nearby-list">
-                  <h3>Places nearby</h3>
-                  {r.attractions.map((a) => (
-                    <article key={a.id}>
-                      {a.image && <Photo src={a.image} alt={a.name} />}
-                      <div>
-                        <h4>{a.name}</h4>
-                        <span>
-                          {a.distance}
-                          {a.travel_time && ` · ${a.travel_time}`}
-                        </span>
-                        <p>{a.description}</p>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
-            </section>
             <section id="good-to-know" className="property-section">
               <p className="eyebrow">BEFORE YOU ARRIVE</p>
               <h2>A few things to know.</h2>
@@ -295,10 +249,7 @@ export default async function ResortPage({ params }: Props) {
           <aside className="enquiry-sidebar">
             <div className="enquiry-card">
               <p className="eyebrow">YOUR NEXT ESCAPE</p>
-              <div className="enquiry-price">
-                <strong>{money(r.starting_price)}</strong>
-                {r.starting_price !== null && <span>{r.price_label}</span>}
-              </div>
+              <StayPrice resort={r} detailed/>
               <p className="price-intro">The whole place. Your kind of pace.</p>
               <div className="enquiry-divider" />
               <h2>Like the look of this stay?</h2>
@@ -322,6 +273,7 @@ export default async function ResortPage({ params }: Props) {
             </a>
           </aside>
         </div>
+        <ResortMap resort={r}/>
         {similar.length > 0 && (
           <section className="section similar-section">
             <SectionHeading
@@ -339,12 +291,7 @@ export default async function ResortPage({ params }: Props) {
         )}
       </div>
       <div className="mobile-enquiry">
-        <p>
-          <strong>{money(r.starting_price)}</strong>
-          <span>
-            {r.starting_price !== null ? r.price_label : "Ask our team"}
-          </span>
-        </p>
+        <StayPrice resort={r}/>
         <a href={wa} className="button button-dark">
           <Icon name="whatsapp" size={19} />
           Enquire on WhatsApp

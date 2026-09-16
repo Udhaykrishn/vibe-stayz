@@ -1,9 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import AdminLayout from "@/components/AdminLayout";
 import Icon from "@/components/Icon";
+import OfferPricingEditor from "@/components/OfferPricingEditor";
 import { Field, MediaPicker } from "@/components/AdminFields";
 import { cms } from "@/lib/cms-config";
 import { isEntity, recordById, siteData } from "@/services/data";
+import { previewHref, recordPath } from "@/lib/preview";
 type Props = {
   params: Promise<{ entity: string; id: string }>;
   searchParams: Promise<{ saved?: string }>;
@@ -21,7 +23,7 @@ export default async function Editor({ params, searchParams }: Props) {
   const isNew = id === "new";
   if (isNew && ["site_settings", "page_content"].includes(entity))
     redirect(`/admin/${entity}`);
-  const data = await siteData(true);
+  const data = await siteData("admin");
   let record: Record<string, unknown> = {
     published: 0,
     featured: 0,
@@ -62,6 +64,7 @@ export default async function Editor({ params, searchParams }: Props) {
     entity === "site_settings"
       ? "Website settings"
       : `${isNew ? "Add" : "Edit"} ${config.singular.toLowerCase()}`;
+  const preview = recordPath(entity, record, data.resorts);
   const search = await searchParams;
   return (
     <AdminLayout
@@ -74,12 +77,20 @@ export default async function Editor({ params, searchParams }: Props) {
             )
       }
       actions={
-        <a
-          href={entity === "site_settings" ? "/admin" : `/admin/${entity}`}
-          className="button button-outline"
-        >
-          Back
-        </a>
+        <div className="page-actions">
+          {!isNew && preview && (
+            <a href={previewHref(preview)} className="button button-outline">
+              <Icon name="eye" size={16} />
+              Preview
+            </a>
+          )}
+          <a
+            href={entity === "site_settings" ? "/admin" : `/admin/${entity}`}
+            className="button button-outline"
+          >
+            Back
+          </a>
+        </div>
       }
     >
       {search.saved && (
@@ -199,6 +210,13 @@ export default async function Editor({ params, searchParams }: Props) {
                     ))}
                   </div>
                   <p
+                    id="gallery-status"
+                    className="field-help"
+                    role="status"
+                    aria-live="polite"
+                    hidden
+                  />
+                  <p
                     id="gallery-empty"
                     className="field-help"
                     hidden={!!resort?.gallery.length}
@@ -230,30 +248,7 @@ export default async function Editor({ params, searchParams }: Props) {
                 </section>
               </>
             )}
-            {entity === "offers" && (
-              <section className="admin-panel editor-group">
-                <h2>Associated stays</h2>
-                <p className="field-help">
-                  The first associated stay is the destination of a “resort”
-                  button.
-                </p>
-                <div className="amenity-checkboxes">
-                  {data.resorts.map((r) => (
-                    <label key={r.id}>
-                      <input
-                        type="checkbox"
-                        name="resort_ids"
-                        value={r.id}
-                        defaultChecked={offer?.resorts.some(
-                          (x) => x.id === r.id,
-                        )}
-                      />
-                      {r.name}
-                    </label>
-                  ))}
-                </div>
-              </section>
-            )}
+            {entity === "offers" && <OfferPricingEditor stays={data.resorts.map(r=>({id:r.id,name:r.name,location_id:r.location_id,locationName:r.location.name,starting_price:r.starting_price}))} links={data.offerLinks.filter(l=>l.offer_id===record.id)} locationId={String(record.location_id||"")}/>}
             <div id="save-error" className="error-note" role="alert" hidden />
             <div className="editor-savebar">
               <span>Changes appear after you save.</span>
@@ -264,7 +259,7 @@ export default async function Editor({ params, searchParams }: Props) {
                     className="danger-button"
                     data-delete-record
                   >
-                    {["resorts", "locations"].includes(entity)
+                    {entity === "resorts"
                       ? "Archive"
                       : "Delete"}
                   </button>
@@ -284,14 +279,16 @@ export default async function Editor({ params, searchParams }: Props) {
         aria-labelledby="delete-title"
       >
         <h2 id="delete-title">
-          {["resorts", "locations"].includes(entity)
+          {entity === "resorts"
             ? "Archive this item?"
             : "Delete this item?"}
         </h2>
         <p>
-          {["resorts", "locations"].includes(entity)
+          {entity === "resorts"
             ? "It will be hidden from the public website. You can restore it from this editor."
-            : "This removes the item and its associations. This action cannot be undone."}
+            : entity === "locations"
+              ? "This destination will be removed for good. It can only be deleted once no stay belongs to it — to hide it instead, untick Published and save."
+              : "This removes the item and its associations. This action cannot be undone."}
         </p>
         <div>
           <button
@@ -307,7 +304,7 @@ export default async function Editor({ params, searchParams }: Props) {
             className="button button-dark"
             data-confirm-delete
           >
-            {["resorts", "locations"].includes(entity)
+            {entity === "resorts"
               ? "Archive item"
               : "Delete item"}
           </button>

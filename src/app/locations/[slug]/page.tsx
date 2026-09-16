@@ -3,12 +3,12 @@ import { notFound } from "next/navigation";
 import PublicLayout from "@/components/PublicLayout";
 import Photo from "@/components/Photo";
 import { CTA, ResortCard, SectionHeading } from "@/components/Cards";
-import { siteData } from "@/services/data";
+import { publicData } from "@/services/data";
 import { pageMetadata } from "@/lib/metadata";
 type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const data = await siteData();
+  const data = await publicData();
   const l = data.locations.find((x) => x.slug === slug);
   return l
     ? pageMetadata(data, {
@@ -21,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 export default async function LocationPage({ params }: Props) {
   const { slug } = await params;
-  const data = await siteData();
+  const data = await publicData();
   const l = data.locations.find((x) => x.slug === slug);
   if (!l) notFound();
   const resorts = data.resorts.filter((r) => r.location_id === l.id);

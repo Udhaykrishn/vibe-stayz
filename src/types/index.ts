@@ -17,6 +17,7 @@ export type Location = Stamped & {
   display_order: number;
 };
 export type Resort = Stamped & {
+  created_at?: string;
   id: string;
   name: string;
   slug: string;
@@ -27,6 +28,9 @@ export type Resort = Stamped & {
   address: string;
   show_address: number;
   map_url: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  map_embed_url?: string;
   property_type: string;
   starting_price: number | null;
   price_label: string;
@@ -71,18 +75,14 @@ export type Offer = Stamped & {
   end_date: string;
   active: number;
   display_order: number;
+  location_id?: string | null;
+  mobile_image?: string;
+  featured_home?: number;
+  cta_url?: string;
 };
-export type Testimonial = Stamped & {
-  id: string;
-  name: string;
-  location: string;
-  rating: number;
-  quote: string;
-  photo: string;
-  resort_id: string | null;
-  published: number;
-  display_order: number;
-};
+export type OfferLink = { offer_id: string; resort_id: string; offer_price: number | null };
+export type Promotion = { id: string; title: string; badge: string; price: number; base: number; discount: number; end_date: string };
+export type FAQ = { id: string; question: string; answer: string; published: number; display_order: number; updated_at: string };
 export type PageContent = Stamped & {
   id: string;
   page: string;
@@ -167,6 +167,7 @@ export type ResortView = Resort & {
   rules: string[];
   attractions: Attraction[];
   offers: Offer[];
+  promotion?: Promotion;
 };
 export type SiteData = {
   settings: Settings;
@@ -174,9 +175,10 @@ export type SiteData = {
   locations: Location[];
   amenities: Amenity[];
   offers: (Offer & { resorts: ResortView[] })[];
-  testimonials: Testimonial[];
   content: PageContent[];
   navigation: NavItem[];
+  faqs: FAQ[];
+  offerLinks: OfferLink[];
 };
 export interface RuntimeEnv {
   supabase: SupabaseClient;

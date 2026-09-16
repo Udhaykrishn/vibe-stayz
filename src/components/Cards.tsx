@@ -2,6 +2,7 @@ import type { Location, ResortView, SiteData } from "@/types";
 import { money, whatsappLink } from "@/utils/format";
 import Icon from "./Icon";
 import Photo from "./Photo";
+import StayPrice from "./StayPrice";
 
 export function SectionHeading({
   eyebrow,
@@ -42,7 +43,7 @@ export function ResortCard({ resort: r }: { resort: ResortView }) {
       >
         <Photo src={r.cover_image} alt={r.image_alt || r.name} />
         <span className="photo-tag">{r.property_type}</span>
-        {r.offers.length > 0 && <span className="offer-dot">Escape idea</span>}
+        {r.promotion ? <span className="offer-dot">{r.promotion.discount}% off</span> : r.featured === 1 ? <span className="offer-dot">Featured</span> : null}
       </a>
       <div className="stay-info">
         <p className="card-location">
@@ -69,17 +70,15 @@ export function ResortCard({ resort: r }: { resort: ResortView }) {
             {r.amenities[0]?.name || "Private stay"}
           </span>
         </div>
+        {r.bathrooms != null && <p className="card-bath"><Icon name="bath" size={16}/>{r.bathrooms} bathrooms</p>}
         <div className="card-bottom">
-          <p>
-            <strong>{money(r.starting_price)}</strong>
-            {r.starting_price !== null && <span> {r.price_label}</span>}
-          </p>
+          <StayPrice resort={r}/>
           <a
-            className="circle-link"
+            className="card-view"
             href={`/resorts/${r.slug}`}
             aria-label={`View details for ${r.name}`}
           >
-            <Icon name="arrow" />
+            View stay <Icon name="arrow" size={17}/>
           </a>
         </div>
       </div>
@@ -109,6 +108,28 @@ export function LocationCard({
     </a>
   );
 }
+export function DestinationTile({
+  location: l,
+  count,
+}: {
+  location: Location;
+  count: number;
+}) {
+  return (
+    <a className="destination-tile" href={`/locations/${l.slug}`}>
+      <span className="destination-tile-icon">
+        <Icon name={l.icon || "pin"} size={24} />
+      </span>
+      <span className="destination-tile-text">
+        <strong>{l.name}</strong>
+        <small>
+          {count ? `${count} ${count === 1 ? "stay" : "stays"}` : "Coming soon"}
+        </small>
+      </span>
+      <Icon name="arrow" size={17} className="destination-tile-arrow" />
+    </a>
+  );
+}
 export function OfferCard({
   offer: o,
   settings,
@@ -117,11 +138,11 @@ export function OfferCard({
   settings: SiteData["settings"];
 }) {
   const href =
-    o.cta_type === "resort" && o.resorts[0]
+    o.cta_type === "custom" && o.cta_url ? o.cta_url : o.cta_type === "resort" && o.resorts[0]
       ? `/resorts/${o.resorts[0].slug}`
       : whatsappLink(settings);
   return (
-    <article className="offer-card">
+    <article className="offer-card" id={`offer-${o.id}`}>
       <div className="offer-image">
         <Photo src={o.image} alt={o.title} />
         <span className="photo-tag">{o.badge || "Escape idea"}</span>
@@ -130,6 +151,7 @@ export function OfferCard({
         <p className="eyebrow">{o.promotional_text}</p>
         <h3>{o.title}</h3>
         <p>{o.description}</p>
+        <div className="offer-stay-links">{o.resorts.map(r=><a key={r.id} href={`/resorts/${r.slug}`}><span>{r.name}</span><StayPrice resort={r}/></a>)}</div>
         <a href={href} className="text-link">
           {o.cta_label}
           <Icon name="arrow" size={18} />

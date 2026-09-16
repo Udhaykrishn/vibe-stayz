@@ -1,5 +1,6 @@
 import type { SiteData } from "@/types";
 import PublicChrome from "./PublicChrome";
+import PreviewBanner from "./PreviewBanner";
 export default function PublicLayout({
   data,
   transparent = false,
@@ -12,8 +13,11 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <PublicChrome data={data} transparent={transparent} detail={detail}>
-      {children}
-    </PublicChrome>
+    <>
+      <PublicChrome data={{settings:data.settings,navigation:data.navigation,locations:data.locations.map(({id,name,slug})=>({id,name,slug}))}} transparent={transparent} detail={detail}>
+        {children}
+      </PublicChrome>
+      <PreviewBanner />
+    </>
   );
 }

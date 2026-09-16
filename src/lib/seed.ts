@@ -26,6 +26,36 @@ export async function initializeContent(env: RuntimeEnv) {
     ],
     [
       "home",
+      "carousel_stay",
+      "{location} · {type}",
+      "{name}",
+      "A beautiful place to slow down, ready when you are.",
+      "",
+      "Explore this stay",
+      "",
+    ],
+    [
+      "home",
+      "carousel_destination",
+      "A PLACE TO GET AWAY",
+      "Slow down in {location}.",
+      "Find your own corner of Kerala. Beautiful stays, thoughtfully selected.",
+      "",
+      "Discover stays",
+      "",
+    ],
+    [
+      "home",
+      "carousel_fallback",
+      "YOUR NEXT KERALA ESCAPE",
+      "A little closer to nature.",
+      "Private villas, cabins and beautiful Kerala escapes.",
+      "/images/cabin-1680.webp",
+      "Explore stays",
+      "/resorts",
+    ],
+    [
+      "home",
       "featured",
       "THE VIBE STAYZ COLLECTION",
       "Some places just feel right.",
@@ -63,16 +93,6 @@ export async function initializeContent(env: RuntimeEnv) {
       "",
       "Explore offers",
       "/offers",
-    ],
-    [
-      "home",
-      "testimonials",
-      "GUEST STORIES",
-      "The moments that stay with you.",
-      "",
-      "",
-      "",
-      "",
     ],
     [
       "home",
@@ -463,18 +483,6 @@ export async function initializeContent(env: RuntimeEnv) {
     add("offer_resorts", {
       offer_id: "together-time",
       resort_id: "coconut-courtyard",
-    });
-    add("testimonials", {
-      id: "demo-story",
-      name: "Anjali S.",
-      location: "Kochi",
-      rating: 5,
-      quote:
-        "The kind of place where you put your phone away and forget what day it is. We came for the view and left with the loveliest memories.",
-      resort_id: "mountain-mist",
-      published: 1,
-      display_order: 0,
-      ...demo,
     });
   }
   add("site_settings", {

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "@/styles/admin.css";
+import "@/styles/admin-refinement.css";
 export const metadata: Metadata = {
   title: { default: "Vibe Stayz Admin", template: "%s · Vibe Stayz Admin" },
   robots: { index: false, follow: false },

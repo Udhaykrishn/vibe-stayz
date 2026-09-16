@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
 import PublicLayout from "@/components/PublicLayout";
-import { siteData } from "@/services/data";
+import { publicData } from "@/services/data";
 import { pageMetadata } from "@/lib/metadata";
 import credits from "../../../public/images/credits.json";
 export async function generateMetadata(): Promise<Metadata> {
-  return pageMetadata(await siteData(), {
+  return pageMetadata(await publicData(), {
     title: "Image credits",
     path: "/image-credits",
   });
 }
 export default async function Credits() {
-  const data = await siteData();
+  const data = await publicData();
   return (
     <PublicLayout data={data}>
       <div className="container section">

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import PublicLayout from "@/components/PublicLayout";
 import { CTA, LocationCard } from "@/components/Cards";
-import { siteData } from "@/services/data";
+import { publicData } from "@/services/data";
 import { content } from "@/utils/format";
 import { pageMetadata } from "@/lib/metadata";
 export async function generateMetadata(): Promise<Metadata> {
-  const data = await siteData();
+  const data = await publicData();
   const c = content(data.content, "locations", "hero");
   return pageMetadata(data, {
     title: "Explore Kerala destinations",
@@ -14,7 +14,7 @@ export async function generateMetadata(): Promise<Metadata> {
   });
 }
 export default async function Locations() {
-  const data = await siteData();
+  const data = await publicData();
   const c = content(data.content, "locations", "hero");
   return (
     <PublicLayout data={data}>

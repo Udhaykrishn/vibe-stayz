@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "@/styles/global.css";
 import "@/styles/next.css";
+import "@/styles/refinement.css";
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Vibe Stayz",

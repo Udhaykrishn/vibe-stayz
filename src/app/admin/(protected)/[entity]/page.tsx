@@ -1,8 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import AdminLayout from "@/components/AdminLayout";
 import Icon from "@/components/Icon";
+import OfferAdminList from "@/components/OfferAdminList";
+import { siteData } from "@/services/data";
 import { cms } from "@/lib/cms-config";
 import { isEntity, tableRows } from "@/services/data";
+import { previewHref, recordPath } from "@/lib/preview";
 type Props = {
   params: Promise<{ entity: string }>;
   searchParams: Promise<{ q?: string; status?: string; saved?: string }>;
@@ -16,6 +19,7 @@ export default async function EntityList({ params, searchParams }: Props) {
   if (!cms[entity] || !isEntity(entity)) notFound();
   if (entity === "site_settings") redirect("/admin/site_settings/global");
   const config = cms[entity];
+  if (entity === "offers") return <AdminLayout title="Offers" description={config.description} actions={<div className="page-actions"><a href={previewHref("/offers")} className="button button-outline"><Icon name="eye" size={16}/>Preview site</a><a href="/admin/offers/new" className="button button-dark">Create campaign</a></div>}><OfferAdminList data={await siteData("admin")}/></AdminLayout>;
   const all = (
     await tableRows<Record<string, string | number | null>>(entity)
   ).sort((a, b) => Number(a.display_order || 0) - Number(b.display_order || 0));
@@ -25,7 +29,7 @@ export default async function EntityList({ params, searchParams }: Props) {
   const records = all.filter(
     (r) =>
       (!q ||
-        `${r.name || r.title || r.label || ""} ${r.page || ""} ${r.section || ""}`
+        `${r.name || r.title || r.question || r.label || ""} ${r.page || ""} ${r.section || ""}`
           .toLowerCase()
           .includes(q)) &&
       (!status ||
@@ -40,12 +44,21 @@ export default async function EntityList({ params, searchParams }: Props) {
       title={config.label}
       description={config.description}
       actions={
-        canCreate ? (
-          <a href={`/admin/${entity}/new`} className="button button-dark">
-            <Icon name="plus" size={17} />
-            Add {config.singular.toLowerCase()}
+        <div className="page-actions">
+          <a
+            href={previewHref(recordPath(entity, {}) || "/")}
+            className="button button-outline"
+          >
+            <Icon name="eye" size={16} />
+            Preview
           </a>
-        ) : undefined
+          {canCreate && (
+            <a href={`/admin/${entity}/new`} className="button button-dark">
+              <Icon name="plus" size={17} />
+              Add {config.singular.toLowerCase()}
+            </a>
+          )}
+        </div>
       }
     >
       {search.saved && (
@@ -82,7 +95,7 @@ export default async function EntityList({ params, searchParams }: Props) {
           <p>{records.length} items</p>
         </form>
         <div className="admin-table-wrap">
-          <table className="admin-table">
+          <table className="admin-table list-table">
             <thead>
               <tr>
                 <th>{config.singular}</th>
@@ -114,7 +127,7 @@ export default async function EntityList({ params, searchParams }: Props) {
                         <strong>
                           {entity === "page_content"
                             ? `${r.page} · ${r.section}`
-                            : r.name || r.title || r.label}
+                            : r.name || r.title || r.question || r.label}
                         </strong>
                         <small>
                           {r.subtitle || r.category || r.badge || ""}

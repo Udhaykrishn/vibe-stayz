@@ -1,6 +1,10 @@
 import "server-only";
 import { runtime } from "../lib/env";
+import { previewing } from "../lib/preview";
 import { initializeContent } from "../lib/seed";
+import { cache } from "react";
+import { effectivePromotion, offerStatus } from "../lib/offers";
+import type { FAQ, OfferLink } from "../types";
 import type {
   SiteData,
   Settings,
@@ -8,7 +12,6 @@ import type {
   Location,
   Amenity,
   Offer,
-  Testimonial,
   PageContent,
   NavItem,
   GalleryImage,
@@ -20,12 +23,12 @@ const TABLES = [
   "locations",
   "amenities",
   "offers",
-  "testimonials",
   "page_content",
   "navigation",
   "nearby_attractions",
   "site_settings",
   "media",
+  "faqs",
 ] as const;
 export type Entity = (typeof TABLES)[number];
 export const isEntity = (value: string): value is Entity =>
@@ -61,7 +64,16 @@ export async function recordById<T>(
   return result.data as T | null;
 }
 
-export async function siteData(admin = false): Promise<SiteData> {
+/**
+ * `public` renders exactly what a visitor sees. `preview` relaxes the visibility
+ * filters only — drafts, inactive amenities and scheduled campaigns appear, while
+ * hidden addresses, sample-content settings and archived stays stay as they are
+ * on the live site. `admin` returns everything, unmasked, for the editors.
+ */
+export type DataMode = "public" | "preview" | "admin";
+export const siteData = cache(async (mode: DataMode = "public"): Promise<SiteData> => {
+  const admin = mode === "admin";
+  const draft = mode !== "public";
   const env = runtime();
   await initializeContent(env);
   const settingsResult = await db()
@@ -76,7 +88,6 @@ export async function siteData(admin = false): Promise<SiteData> {
     db().from("locations").select("*"),
     db().from("amenities").select("*"),
     db().from("offers").select("*"),
-    db().from("testimonials").select("*"),
     db().from("page_content").select("*"),
     db().from("navigation").select("*"),
     db().from("resort_images").select("*"),
@@ -84,6 +95,7 @@ export async function siteData(admin = false): Promise<SiteData> {
     db().from("resort_features").select("*"),
     db().from("nearby_attractions").select("*"),
     db().from("offer_resorts").select("*"),
+    db().from("faqs").select("*"),
   ]);
   results.forEach((result, index) =>
     fail(result.error, `Load site data ${index + 1}`),
@@ -92,53 +104,41 @@ export async function siteData(admin = false): Promise<SiteData> {
   const rawLocations = (results[1].data || []) as Location[];
   const rawAmenities = (results[2].data || []) as Amenity[];
   const rawOffers = (results[3].data || []) as Offer[];
-  const rawTestimonials = (results[4].data || []) as Testimonial[];
   const showDemo = admin || !!settings.show_demo;
   const visible = <T extends { is_demo: number }>(items: T[]) =>
     showDemo ? items : items.filter((item) => !item.is_demo);
-  const today = new Date().toISOString().slice(0, 10);
   const locations = visible(rawLocations)
-    .filter((item) => admin || !!item.published)
+    .filter((item) => draft || !!item.published)
     .sort(byOrderName);
   const amenities = visible(rawAmenities)
-    .filter((item) => admin || !!item.active)
+    .filter((item) => draft || !!item.active)
     .sort(byOrderName);
   const offers = visible(rawOffers)
-    .filter(
-      (item) =>
-        admin ||
-        (!!item.active &&
-          (!item.start_date || item.start_date <= today) &&
-          (!item.end_date || item.end_date >= today)),
-    )
+    .filter((item) => draft || offerStatus(item) === "Active")
     .sort(byOrderName);
-  const testimonials = visible(rawTestimonials)
-    .filter((item) => admin || !!item.published)
-    .sort(byOrderName);
-  const content = ((results[5].data || []) as PageContent[]).sort(byOrderName);
-  const navigation = ((results[6].data || []) as NavItem[]).sort(byOrderName);
-  const gallery = ((results[7].data || []) as GalleryImage[]).sort(byOrderName);
-  const relations = (results[8].data || []) as {
+  const content = ((results[4].data || []) as PageContent[]).sort(byOrderName);
+  const navigation = ((results[5].data || []) as NavItem[]).sort(byOrderName);
+  const gallery = ((results[6].data || []) as GalleryImage[]).sort(byOrderName);
+  const relations = (results[7].data || []) as {
     resort_id: string;
     amenity_id: string;
   }[];
   const features = (
-    (results[9].data || []) as {
+    (results[8].data || []) as {
       resort_id: string;
       kind: string;
       text: string;
       display_order: number;
     }[]
   ).sort(byOrderName);
-  const attractions = ((results[10].data || []) as Attraction[]).sort(
+  const attractions = ((results[9].data || []) as Attraction[]).sort(
     byOrderName,
   );
-  const offerRelations = (results[11].data || []) as {
-    resort_id: string;
-    offer_id: string;
-  }[];
+  const offerRelations = (results[10].data || []) as OfferLink[];
   const resorts = visible(rawResorts)
-    .filter((item) => admin || (!!item.published && !item.archived))
+    .filter(
+      (item) => admin || (!item.archived && (draft || !!item.published)),
+    )
     .sort(byOrderName);
   const views = resorts
     .filter((resort) =>
@@ -146,7 +146,8 @@ export async function siteData(admin = false): Promise<SiteData> {
     )
     .map((resort) => ({
       ...resort,
-      ...(!admin && !resort.show_address ? { address: "", map_url: "" } : {}),
+      ...(!admin && !resort.show_address ? { address: "", map_url: "", latitude: null, longitude: null, map_embed_url: "" } : {}),
+      promotion: effectivePromotion(resort, offers, offerRelations),
       location: locations.find(
         (location) => location.id === resort.location_id,
       )!,
@@ -191,8 +192,12 @@ export async function siteData(admin = false): Promise<SiteData> {
         ),
       ),
     })),
-    testimonials,
     content,
     navigation,
+    faqs: ((results[11].data || []) as FAQ[]).filter(f => draft || f.published).sort(byOrderName),
+    offerLinks: admin ? offerRelations : [],
   };
-}
+});
+/** Data for the public site: the live view, unless a signed-in editor is previewing. */
+export const publicData = async (): Promise<SiteData> =>
+  siteData((await previewing()) ? "preview" : "public");

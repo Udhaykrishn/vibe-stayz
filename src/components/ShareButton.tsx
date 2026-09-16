@@ -22,7 +22,7 @@ export default function ShareButton() {
         }
       }}
     >
-      <Icon name="external" size={17} />
+      <Icon name="share" size={17} />
       {status || "Share this stay"}
     </button>
   );

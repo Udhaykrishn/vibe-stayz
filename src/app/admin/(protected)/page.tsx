@@ -1,9 +1,10 @@
 import AdminLayout from "@/components/AdminLayout";
 import Icon from "@/components/Icon";
 import { siteData } from "@/services/data";
+import { previewHref } from "@/lib/preview";
 export const metadata = { title: "Dashboard" };
 export default async function Dashboard() {
-  const data = await siteData(true);
+  const data = await siteData("admin");
   const stats = [
     ["All resorts", data.resorts.length, "bed", "/admin/resorts"],
     [
@@ -25,7 +26,6 @@ export default async function Dashboard() {
       "star",
       "/admin/resorts",
     ],
-    ["Guest stories", data.testimonials.length, "heart", "/admin/testimonials"],
   ] as const;
   const recent = [
     ...data.resorts.map((r) => ({
@@ -48,10 +48,16 @@ export default async function Dashboard() {
       title="Good stays start here."
       description="A little care behind the scenes. A lovely experience for every guest."
       actions={
-        <a href="/admin/resorts/new" className="button button-dark">
-          <Icon name="plus" size={18} />
-          Add a resort
-        </a>
+        <div className="page-actions">
+          <a href={previewHref("/")} className="button button-outline">
+            <Icon name="eye" size={16} />
+            Preview site
+          </a>
+          <a href="/admin/resorts/new" className="button button-dark">
+            <Icon name="plus" size={18} />
+            Add a resort
+          </a>
+        </div>
       }
     >
       <div className="stats-grid">
@@ -139,7 +145,7 @@ export default async function Dashboard() {
           <h2>Recently updated</h2>
         </div>
         <div className="admin-table-wrap">
-          <table className="admin-table">
+          <table className="admin-table recent-table">
             <thead>
               <tr>
                 <th>Content</th>

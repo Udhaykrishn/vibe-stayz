@@ -1,127 +1,103 @@
 import type { Metadata } from "next";
 import PublicLayout from "@/components/PublicLayout";
 import Photo from "@/components/Photo";
+import PromotionHero, { type HeroSlide } from "@/components/PromotionHero";
+import FAQSection from "@/components/FAQSection";
+import { money } from "@/utils/format";
 import Icon from "@/components/Icon";
 import {
   CTA,
-  LocationCard,
-  OfferCard,
+  DestinationTile,
   ResortCard,
   SectionHeading,
   Trust,
 } from "@/components/Cards";
-import { siteData } from "@/services/data";
-import { content, whatsappLink } from "@/utils/format";
+import { publicData } from "@/services/data";
+import { content, fill, whatsappLink } from "@/utils/format";
 import { pageMetadata } from "@/lib/metadata";
 export async function generateMetadata(): Promise<Metadata> {
-  return pageMetadata(await siteData());
+  return pageMetadata(await publicData());
 }
 export default async function Home() {
-  const data = await siteData();
+  const data = await publicData();
   const hero = content(data.content, "home", "hero");
   const featured = content(data.content, "home", "featured");
-  const destinations = content(data.content, "home", "destinations");
   const story = content(data.content, "home", "story");
-  const offers = content(data.content, "home", "offers");
-  const reviews = content(data.content, "home", "testimonials");
+  const destinations = content(data.content, "home", "destinations");
+  // Carousel copy an editor controls from Site content, rather than from this file.
+  const stayCopy = content(data.content, "home", "carousel_stay");
+  const destinationCopy = content(data.content, "home", "carousel_destination");
+  const fallbackCopy = content(data.content, "home", "carousel_fallback");
   const featuredStays = data.resorts.filter((r) => r.featured);
-  const locations = data.locations.filter((l) => l.featured);
-  const review = data.testimonials[0];
+  // Count the stays behind every destination, then lead with the ones that have somewhere to go.
+  const stayCount = (id: string) =>
+    data.resorts.filter((r) => r.location_id === id).length;
+  const withStays = data.locations.filter((l) => stayCount(l.id));
+  const destinationList = withStays.length ? withStays : data.locations;
+  const offerSlides: HeroSlide[] = data.offers.filter(o=>o.featured_home).map(o=>{
+    const priced=o.resorts.filter(r=>r.promotion?.id===o.id).sort((a,b)=>a.promotion!.price-b.promotion!.price);
+    const p=priced[0]?.promotion;
+    const href=o.cta_type==="custom"&&o.cta_url?o.cta_url:o.cta_type==="whatsapp"?whatsappLink(data.settings):o.resorts.length===1?`/resorts/${o.resorts[0].slug}`:`/offers#offer-${o.id}`;
+    return {id:o.id,detail:priced[0]?`${priced[0].name} · ${priced[0].location.name}`:o.resorts.length===1?`${o.resorts[0].name} · ${o.resorts[0].location.name}`:undefined,title:o.title,subtitle:o.promotional_text,image:o.image||o.resorts[0]?.cover_image||hero?.image||"",mobileImage:o.mobile_image,badge:o.badge,href,cta:o.cta_label||"Explore offer",starts:o.start_date,ends:o.end_date,savings:p?`${money(p.base-p.price)} OFF`:undefined};
+  });
+  // Keep discovery moving even when no campaign is currently featured.
+  const showcase = featuredStays.length ? featuredStays : data.resorts;
+  const staySlides: HeroSlide[] = showcase.slice(0, 3).map(r => {
+    const values = { name: r.name, location: r.location.name, type: r.property_type };
+    return {
+      id: `stay-${r.id}`,
+      title: fill(stayCopy?.title || "{name}", values),
+      subtitle: r.subtitle || fill(stayCopy?.body || "", values),
+      image: r.cover_image,
+      badge: fill(stayCopy?.eyebrow || "{location} · {type}", values),
+      href: `/resorts/${r.slug}`,
+      cta: stayCopy?.cta_label || "Explore this stay",
+    };
+  });
+  const destinationSlides: HeroSlide[] = data.locations.slice(0, 2).map(l => {
+    const values = { name: l.name, location: l.name };
+    return {
+      id: `destination-${l.id}`,
+      title: fill(destinationCopy?.title || "Slow down in {location}.", values),
+      subtitle: fill(destinationCopy?.body || "Find your own corner of Kerala. Beautiful stays, thoughtfully selected.", values),
+      image: l.cover_image,
+      badge: fill(destinationCopy?.eyebrow || "A PLACE TO GET AWAY", values),
+      href: `/resorts?location=${l.slug}`,
+      cta: destinationCopy?.cta_label || "Discover stays",
+    };
+  });
+  // The carousel never opens on a campaign. A stay leads, then every featured offer
+  // takes its own slide from the second position onwards, and the rest of the stays follow.
+  const opening = staySlides.length ? staySlides : destinationSlides;
+  const slides: HeroSlide[] = opening.length
+    ? [opening[0], ...offerSlides, ...opening.slice(1)]
+    : [...offerSlides];
+  // Never leave the carousel with a single slide to move between.
+  if (slides.length < 2)
+    slides.push(...destinationSlides.filter(d => !slides.some(s => s.id === d.id)));
   return (
     <PublicLayout data={data} transparent>
-      <section className="hero">
-        <Photo
-          src={hero?.image || ""}
-          alt="A private tropical villa and infinity pool overlooking the hills at sunset"
-          className="hero-image"
-          eager
-          sizes="100vw"
-        />
-        <div className="container hero-content">
-          <p className="eyebrow">{hero?.eyebrow}</p>
-          <h1>{hero?.title}</h1>
-          <p className="hero-description">{hero?.body}</p>
-          <div className="hero-buttons">
-            <a
-              className="button button-lime"
-              href={hero?.cta_url || "/resorts"}
-            >
-              {hero?.cta_label || "Explore resorts"}
-              <Icon name="arrow" size={18} />
-            </a>
-            <a
-              href={whatsappLink(data.settings)}
-              className="button button-white-outline"
-            >
-              <Icon name="whatsapp" size={17} />
-              Enquire on WhatsApp
-            </a>
-          </div>
-        </div>
-        <p className="hero-caption">
-          <Icon name="pin" size={15} />
-          Your next escape, somewhere beautiful.
-        </p>
-        <form
-          className="discovery-bar container"
-          action="/resorts"
-          role="search"
-        >
-          <div className="search-field">
-            <Icon name="search" size={24} />
-            <label htmlFor="hero-search">
-              A place you have in mind
-              <input
-                id="hero-search"
-                name="q"
-                type="search"
-                placeholder="Search a stay or destination"
+      <PromotionHero slides={slides} hero={hero} fallback={fallbackCopy} locations={data.locations.map(({slug,name})=>({slug,name}))}/>
+      {destinationList.length > 0 && (
+        <section className="section container home-destinations">
+          <SectionHeading
+            eyebrow={destinations?.eyebrow}
+            title={destinations?.title}
+            body={destinations?.body}
+            href={destinations?.cta_url}
+            label={destinations?.cta_label}
+          />
+          <div className="destination-tiles">
+            {destinationList.map((l) => (
+              <DestinationTile
+                key={l.id}
+                location={l}
+                count={stayCount(l.id)}
               />
-            </label>
+            ))}
           </div>
-          <div className="search-field">
-            <Icon name="pin" size={24} />
-            <label htmlFor="hero-location">
-              Your destination
-              <select id="hero-location" name="location" defaultValue="">
-                <option value="">Anywhere in Kerala</option>
-                {data.locations.map((l) => (
-                  <option key={l.id} value={l.slug}>
-                    {l.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          <div className="search-field">
-            <Icon name="users" size={24} />
-            <label htmlFor="hero-guests">
-              Room for everyone
-              <select name="guests" id="hero-guests" defaultValue="">
-                <option value="">Any group size</option>
-                <option value="2">2+ guests</option>
-                <option value="4">4+ guests</option>
-                <option value="8">8+ guests</option>
-                <option value="12">12+ guests</option>
-              </select>
-            </label>
-          </div>
-          <button className="button button-lime" type="submit">
-            <Icon name="search" size={18} />
-            Find your stay
-          </button>
-        </form>
-      </section>
-      <div className="destination-ribbon">
-        <div className="container">
-          {locations.slice(0, 4).map((l) => (
-            <a key={l.id} href={`/locations/${l.slug}`}>
-              <Icon name={l.icon} size={29} />
-              {l.name}
-            </a>
-          ))}
-        </div>
-      </div>
+        </section>
+      )}
       <section className="section container home-featured">
         <SectionHeading
           eyebrow={featured?.eyebrow}
@@ -148,24 +124,6 @@ export default async function Home() {
           )}
         </div>
       </section>
-      <section className="section container destinations-section">
-        <SectionHeading
-          eyebrow={destinations?.eyebrow}
-          title={destinations?.title}
-          body={destinations?.body}
-          href={destinations?.cta_url}
-          label={destinations?.cta_label}
-        />
-        <div className="destinations-grid">
-          {locations.slice(0, 4).map((l) => (
-            <LocationCard
-              key={l.id}
-              location={l}
-              count={data.resorts.filter((r) => r.location_id === l.id).length}
-            />
-          ))}
-        </div>
-      </section>
       <section className="story-section">
         <div className="story-image">
           <Photo
@@ -189,51 +147,7 @@ export default async function Home() {
         </div>
       </section>
       <Trust />
-      {data.offers.length > 0 && (
-        <section className="section offers-section">
-          <div className="container">
-            <SectionHeading
-              eyebrow={offers?.eyebrow}
-              title={offers?.title}
-              body={offers?.body}
-              href={offers?.cta_url}
-              label={offers?.cta_label}
-            />
-            <div className="offers-grid">
-              {data.offers.slice(0, 2).map((o) => (
-                <OfferCard key={o.id} offer={o} settings={data.settings} />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-      {review && (
-        <section className="testimonials-section">
-          <div className="container testimonial-inner">
-            <div className="testimonials-heading">
-              <p className="eyebrow">{reviews?.eyebrow}</p>
-              <h2>{reviews?.title}</h2>
-            </div>
-            <div className="quote-card">
-              <div
-                className="quote-stars"
-                aria-label={`${review.rating} out of 5 stars`}
-              >
-                {Array.from({ length: review.rating }).map((_, i) => (
-                  <Icon key={i} name="star" size={14} />
-                ))}
-              </div>
-              <blockquote>“{review.quote}”</blockquote>
-              <p className="quote-person">
-                {review.name} · {review.location}
-                {review.is_demo === 1 && (
-                  <span className="sample-tag">Sample guest story</span>
-                )}
-              </p>
-            </div>
-          </div>
-        </section>
-      )}
+      <FAQSection faqs={data.faqs}/>
       <CTA data={data} />
     </PublicLayout>
   );

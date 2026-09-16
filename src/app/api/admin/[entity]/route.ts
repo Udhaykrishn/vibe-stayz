@@ -1,24 +1,10 @@
 import { ZodError } from "zod";
 import { cms } from "@/lib/cms-config";
 import { runtime } from "@/lib/env";
-import { validateFields, gallerySchema, idsSchema } from "@/lib/validation";
+import { validateFields, gallerySchema, idsSchema, offerLinksSchema, featureLinesSchema } from "@/lib/validation";
 import { requireAdmin } from "@/lib/admin-request";
 type Context = { params: Promise<{ entity: string }> };
 const usable = (entity: string) => !!cms[entity];
-async function replace(
-  table: string,
-  column: string,
-  id: string,
-  records: Record<string, unknown>[],
-) {
-  const db = runtime().supabase;
-  const removed = await db.from(table).delete().eq(column, id);
-  if (removed.error) throw removed.error;
-  if (records.length) {
-    const added = await db.from(table).insert(records);
-    if (added.error) throw added.error;
-  }
-}
 export async function POST(request: Request, { params }: Context) {
   const denied = await requireAdmin();
   if (denied) return denied;
@@ -37,6 +23,7 @@ export async function POST(request: Request, { params }: Context) {
       gallery?: unknown;
       amenity_ids?: unknown;
       resort_ids?: unknown;
+      offer_links?: unknown;
     };
     const id =
       entity === "site_settings" ? "global" : body.id || crypto.randomUUID();
@@ -79,82 +66,39 @@ export async function POST(request: Request, { params }: Context) {
         },
         { status: 422 },
       );
-    if (entity === "testimonials" && fields.resort_id === "")
-      fields.resort_id = null;
     fields.updated_at = new Date().toISOString();
-    const saved = await db.from(entity).upsert({ id, ...fields });
-    if (saved.error) throw saved.error;
-    if (entity === "resorts") {
-      if (body.gallery !== undefined) {
-        const gallery = gallerySchema.parse(body.gallery);
-        await replace(
-          "resort_images",
-          "resort_id",
-          id,
-          gallery.map((image, index) => ({
-            id: crypto.randomUUID(),
-            resort_id: id,
-            url: image.url,
-            alt: image.alt,
-            display_order: index,
-          })),
-        );
+    if (entity === "offers") {
+      if (fields.location_id === "") fields.location_id = null;
+      const links = body.offer_links !== undefined ? offerLinksSchema.parse(body.offer_links) : body.resort_ids !== undefined ? idsSchema.parse(body.resort_ids).map(resort_id => ({ resort_id, offer_price: null })) : null;
+      const previous = await db.from("offers").select("*").eq("id", id).maybeSingle();
+      if (previous.error) throw previous.error;
+      const merged = { ...previous.data, ...fields };
+      if (merged.cta_type === "custom" && !merged.cta_url) return Response.json({ error: "Add a destination for the custom button." }, { status: 422 });
+      if (links) {
+        const stays = await db.from("resorts").select("id,location_id,starting_price").in("id", links.map(l => l.resort_id));
+        if (stays.error) throw stays.error;
+        if (links.some(l => { const r = stays.data.find(r => r.id === l.resort_id); return !r || (merged.location_id && r.location_id !== merged.location_id) || (l.offer_price !== null && (r.starting_price === null || l.offer_price >= r.starting_price)); })) return Response.json({ error: "Every selected stay must match the destination. Offer prices must be below each stay’s base price." }, { status: 422 });
       }
-      if (body.amenity_ids !== undefined) {
-        const ids = [...new Set(idsSchema.parse(body.amenity_ids))];
-        await replace(
-          "resort_amenities",
-          "resort_id",
-          id,
-          ids.map((amenity_id) => ({ resort_id: id, amenity_id })),
-        );
-      }
-      for (const [field, kind] of [
-        ["highlights", "highlight"],
-        ["rules", "rule"],
-      ] as const) {
-        if (body.fields[field] !== undefined) {
-          if (
-            typeof body.fields[field] !== "string" ||
-            body.fields[field].length > 10000
-          )
-            throw new Error("Invalid property content");
-          const lines = body.fields[field]
-            .split("\n")
-            .map((value) => value.trim())
-            .filter(Boolean)
-            .slice(0, 25);
-          const removed = await db
-            .from("resort_features")
-            .delete()
-            .eq("resort_id", id)
-            .eq("kind", kind);
-          if (removed.error) throw removed.error;
-          if (lines.length) {
-            const added = await db
-              .from("resort_features")
-              .insert(
-                lines.map((text, index) => ({
-                  id: crypto.randomUUID(),
-                  resort_id: id,
-                  kind,
-                  text,
-                  display_order: index,
-                })),
-              );
-            if (added.error) throw added.error;
-          }
-        }
-      }
+      const result = await db.rpc("save_offer", { p_id: id, p_fields: fields, p_links: links });
+      if (result.error) throw result.error;
+      return Response.json({ ok: true, id });
     }
-    if (entity === "offers" && body.resort_ids !== undefined) {
-      const ids = [...new Set(idsSchema.parse(body.resort_ids))];
-      await replace(
-        "offer_resorts",
-        "offer_id",
-        id,
-        ids.map((resort_id) => ({ offer_id: id, resort_id })),
-      );
+    if (entity === "resorts") {
+      // Validate every relation before performing any write. The RPC commits them together.
+      const gallery = body.gallery === undefined ? null : gallerySchema.parse(body.gallery);
+      const amenities = body.amenity_ids === undefined ? null : [...new Set(idsSchema.parse(body.amenity_ids))];
+      const highlights = body.fields.highlights === undefined ? null : featureLinesSchema.parse(body.fields.highlights);
+      const rules = body.fields.rules === undefined ? null : featureLinesSchema.parse(body.fields.rules);
+      const saved = await db.rpc("save_resort", {
+        p_id: id, p_fields: fields, p_gallery: gallery, p_amenities: amenities,
+        p_highlights: highlights, p_rules: rules,
+      });
+      if (saved.error) throw saved.error;
+    } else {
+      const saved = current.data
+        ? await db.from(entity).update(fields).eq("id", id)
+        : await db.from(entity).insert({ id, ...fields });
+      if (saved.error) throw saved.error;
     }
     return Response.json({ ok: true, id });
   } catch (error) {
@@ -168,7 +112,7 @@ export async function POST(request: Request, { params }: Context) {
       );
     }
     console.error("CMS save failed", error);
-    const message = String(error).toLowerCase();
+    const message = (error && typeof error === "object" && "message" in error ? String(error.message) : String(error)).toLowerCase();
     return Response.json(
       {
         error:
@@ -196,6 +140,30 @@ export async function DELETE(request: Request, { params }: Context) {
     if (!id)
       return Response.json({ error: "Select a record." }, { status: 400 });
     const db = runtime().supabase;
+    if (entity === "locations") {
+      // A destination is only removable once nothing points at it: the resorts
+      // foreign key is ON DELETE RESTRICT, so the database would reject it anyway.
+      const inUse = await db
+        .from("resorts")
+        .select("name", { count: "exact" })
+        .eq("location_id", id)
+        .order("name")
+        .limit(3);
+      if (inUse.error) throw inUse.error;
+      const count = inUse.count ?? inUse.data.length;
+      if (count) {
+        const names = inUse.data.map((r) => r.name).join(", ");
+        return Response.json(
+          {
+            error: `${count} ${count === 1 ? "stay" : "stays"} still belong to this destination (${names}${count > inUse.data.length ? ", …" : ""}). Archived stays count too. Move ${count === 1 ? "it" : "them"} to another destination first, then delete this one.`,
+          },
+          { status: 409 },
+        );
+      }
+      const removed = await db.from("locations").delete().eq("id", id);
+      if (removed.error) throw removed.error;
+      return Response.json({ ok: true });
+    }
     const result =
       entity === "resorts"
         ? await db
@@ -206,12 +174,7 @@ export async function DELETE(request: Request, { params }: Context) {
               updated_at: new Date().toISOString(),
             })
             .eq("id", id)
-        : entity === "locations"
-          ? await db
-              .from("locations")
-              .update({ published: 0, updated_at: new Date().toISOString() })
-              .eq("id", id)
-          : await db.from(entity).delete().eq("id", id);
+        : await db.from(entity).delete().eq("id", id);
     if (result.error) throw result.error;
     return Response.json({ ok: true });
   } catch (error) {

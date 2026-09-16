@@ -13,7 +13,7 @@ export function Field({
   const id = `field-${f.key}`;
   const options = f.relation
     ? data[f.relation].map((r) => ({ id: r.id, label: r.name }))
-    : f.options?.map((s) => ({ id: s, label: s })) || [];
+    : f.options?.map((s) => ({ id: s, label: f.optionLabels?.[s] || s })) || [];
   return (
     <div
       className={`field cms-field${f.full ? " full" : ""}${f.type === "checkbox" ? " checkbox-field" : ""}`}
@@ -69,7 +69,7 @@ export function Field({
               id={id}
               name={f.key}
               type={
-                f.type === "number"
+                f.type === "number" || f.type === "decimal"
                   ? "number"
                   : f.type === "date"
                     ? "date"
@@ -79,9 +79,9 @@ export function Field({
               }
               defaultValue={String(value ?? "")}
               required={f.required}
-              min={f.key === "max_guests" || f.key === "rating" ? 1 : 0}
+              min={f.type === "decimal" ? (f.key === "latitude" ? -90 : -180) : f.key === "max_guests" || f.key === "rating" ? 1 : 0}
               max={f.key === "rating" ? 5 : undefined}
-              step={f.type === "number" ? 1 : undefined}
+              step={f.type === "decimal" ? "any" : f.type === "number" ? 1 : undefined}
             />
           )}
         </>
@@ -158,5 +158,82 @@ export function MediaPicker() {
       <p id="media-status" role="status" />
       <div id="media-options" className="media-options" />
     </dialog>
+  );
+}
+/** Replace, rename and delete controls for the media library. */
+export function MediaTools() {
+  return (
+    <>
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        data-replace-upload
+        hidden
+      />
+      <dialog
+        id="media-details"
+        className="confirm-dialog media-details"
+        aria-labelledby="media-details-title"
+      >
+        <h2 id="media-details-title">Image details</h2>
+        <p>
+          Rename this photograph, or describe it for readers who cannot see it.
+        </p>
+        <div className="field">
+          <label htmlFor="media-filename">File name</label>
+          <input id="media-filename" name="filename" required />
+        </div>
+        <div className="field">
+          <label htmlFor="media-alt-text">Image description (alt text)</label>
+          <input
+            id="media-alt-text"
+            name="alt"
+            placeholder="Describe this photograph"
+          />
+        </div>
+        <p className="field-error" id="media-details-error" hidden />
+        <div>
+          <button
+            type="button"
+            className="button button-outline"
+            data-cancel-details
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="button button-dark"
+            data-save-details
+          >
+            Save details
+          </button>
+        </div>
+      </dialog>
+      <dialog
+        id="media-delete"
+        className="confirm-dialog"
+        aria-labelledby="media-delete-title"
+      >
+        <h2 id="media-delete-title">Delete this photograph?</h2>
+        <p id="media-delete-note" />
+        <div>
+          <button
+            type="button"
+            className="button button-outline"
+            data-cancel-media-delete
+            autoFocus
+          >
+            Keep image
+          </button>
+          <button
+            type="button"
+            className="button button-dark"
+            data-confirm-media-delete
+          >
+            Delete image
+          </button>
+        </div>
+      </dialog>
+    </>
   );
 }

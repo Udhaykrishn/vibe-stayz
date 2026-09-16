@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { cms } from "./cms-config";
+import { validMapEmbed } from "./maps";
 export const safeLink = (value: string) =>
   !value ||
   /^\/(?!\/)[^\s\\]*$/.test(value) ||
@@ -17,7 +18,10 @@ export function validateFields(entity: string, input: unknown) {
       validator = z
         .union([z.boolean(), z.literal(0), z.literal(1)])
         .transform((x) => (x ? 1 : 0));
-    else if (field.type === "number") {
+    else if (field.type === "decimal") {
+      const limit = field.key === "latitude" ? 90 : 180;
+      validator = z.number().finite().min(-limit).max(limit).nullable();
+    } else if (field.type === "number") {
       let n = z
         .number()
         .int()
@@ -50,6 +54,7 @@ export function validateFields(entity: string, input: unknown) {
           safeImage,
           "Enter an image URL beginning with https://, /images/ or /media/.",
         );
+      if (field.key === "map_embed_url") validator = s.refine(validMapEmbed, "Use a Google Maps embed URL, not iframe HTML.");
       if (
         [
           "url",
@@ -79,7 +84,7 @@ export function validateFields(entity: string, input: unknown) {
         validator = s.refine(
           (v) =>
             !v ||
-            (/^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v))),
+            (/^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(v)) && new Date(v).toISOString().slice(0,10) === v),
           "Enter a valid date.",
         );
     }
@@ -96,3 +101,6 @@ export const gallerySchema = z
   )
   .max(30);
 export const idsSchema = z.array(z.string().min(1).max(150)).max(50);
+export const offerLinksSchema = z.array(z.object({ resort_id: z.string().min(1).max(150), offer_price: z.number().int().positive().max(10000000).nullable() })).max(50).refine(rows => new Set(rows.map(r => r.resort_id)).size === rows.length, "Select each stay once.");
+
+export const featureLinesSchema = z.string().max(10000).transform(value => value.split("\n").map(line => line.trim()).filter(Boolean)).refine(lines => lines.length <= 25, "Use at most 25 lines.");

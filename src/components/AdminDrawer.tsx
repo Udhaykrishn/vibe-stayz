@@ -1,0 +1,4 @@
+"use client";
+import { useRef } from "react";
+import Icon from "./Icon";
+export default function AdminDrawer({ links }: { links: [string,string,string][] }) { const ref=useRef<HTMLDialogElement>(null);return <><button className="icon-button admin-menu-toggle" aria-label="Open admin navigation" onClick={()=>ref.current?.showModal()}><Icon name="menu"/></button><dialog className="admin-drawer" ref={ref} aria-label="Admin navigation" onClick={e=>{if(e.target===ref.current)ref.current.close();}}><div className="drawer-heading"><strong>Content studio</strong><button className="icon-button" aria-label="Close admin navigation" onClick={()=>ref.current?.close()}><Icon name="close"/></button></div><nav>{links.map(([url,label,icon])=><a key={url} href={url}><Icon name={icon} size={20}/>{label}</a>)}</nav><button className="button button-dark" data-logout><Icon name="logout" size={18}/>Sign out</button></dialog></>; }

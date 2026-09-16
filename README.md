@@ -22,7 +22,7 @@ If you use the Supabase CLI instead of the SQL Editor, authenticate and link the
 | `SUPABASE_STORAGE_BUCKET` | No | Storage bucket name. Defaults to `media`; the migration creates this bucket. |
 | `ADMIN_USERNAME` | No | CMS login username. Defaults to `admin`. |
 | `ADMIN_PASSWORD_HASH` | Yes for `/admin` | PBKDF2-SHA256 password hash in `salt:hex` format. The plaintext password is never stored. |
-| `DEMO_MODE` | No | Set to `true` only when initially loading the included sample locations, stays, offers and testimonial. Use `false` for a clean production collection. |
+| `DEMO_MODE` | No | Set to `true` only when initially loading the included sample locations, stays and offers. Use `false` for a clean production collection. |
 | `SITE_ORIGIN` | Yes in production | Canonical site origin. Locally use `http://localhost:3000`; in Vercel use the final `https://…` domain without a trailing slash. |
 
 Generate an admin password hash without saving the plaintext password in the repository:
@@ -63,8 +63,9 @@ The Vercel CLI is not installed globally on this machine. Installing it with `np
 
 ## Content and launch notes
 
-- `/admin` manages resorts, locations, amenities, offers, guest stories, attractions, navigation, site sections, settings and Supabase-hosted media.
+- `/admin` manages resorts, locations, amenities, offers, attractions, navigation, site sections, settings and Supabase-hosted media.
 - Browser-side uploads are resized to a maximum 1920px long edge and encoded as WebP before the server validates and uploads them to Supabase Storage.
+- The media library also replaces, renames and deletes photographs. Replacing keeps the image's `/media/{id}` address, so every page already using that photograph shows the new picture without being edited. Each card shows where the image is used, and an image still shown on the website asks for confirmation before it is deleted.
 - `DEMO_MODE=true` controls whether sample records are inserted on the first empty database initialization. The **Show sample collection** setting controls whether those rows are publicly visible later.
 - Before launch, add the real WhatsApp number, phone, email, address and hours; replace or remove sample content; turn off **Show sample collection**; and set the final `SITE_ORIGIN`.
 - Filtered resort pages and sample/detail previews are `noindex`. The dynamic `robots.txt` and `sitemap.xml` reflect the launch state.

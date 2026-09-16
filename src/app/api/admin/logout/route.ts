@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, draftMode } from "next/headers";
 import { runtime } from "@/lib/env";
 import { sha256 } from "@/lib/auth";
 export async function POST() {
@@ -10,5 +10,7 @@ export async function POST() {
       .delete()
       .eq("token_hash", await sha256(token));
   store.delete("vibe_admin");
+  // Signing out ends any preview too, so the next visit is the live site.
+  (await draftMode()).disable();
   return Response.json({ ok: true });
 }

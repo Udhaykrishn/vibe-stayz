@@ -11,16 +11,18 @@ export default function PublicChrome({
   detail = false,
   children,
 }: {
-  data: SiteData;
+  data: Pick<SiteData, "settings" | "navigation"> & {locations: Pick<SiteData["locations"][number], "slug" | "name" | "id">[]};
   transparent?: boolean;
   detail?: boolean;
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
+  const pathname = usePathname() || "/";
   const menu = useRef<HTMLDialogElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const s = data.settings;
   const wa = whatsappLink(s);
+  const mainNav = data.navigation.filter((item) => item.in_header);
+  const isActive = (url: string) => url === "/" ? pathname === "/" : pathname.startsWith(url);
   const openMenu = () => {
     if (typeof menu.current?.showModal === "function") menu.current.showModal();
     else menu.current?.setAttribute("open", "");
@@ -35,7 +37,8 @@ export default function PublicChrome({
     window.addEventListener("scroll", update, { passive: true });
     const onError = (event: Event) => {
       const image = event.target as HTMLImageElement;
-      if (!image.matches("[data-photo]")) return;
+      if (!(image instanceof HTMLImageElement) || !image.matches("[data-photo]") || image.dataset.fallback) return;
+      image.dataset.fallback = "true";
       image.removeAttribute("srcset");
       image.src = "/images/heritage-640.webp";
       image.alt = "Image temporarily unavailable";
@@ -63,20 +66,19 @@ export default function PublicChrome({
             <img src={s.logo} alt={s.site_name} width="82" height="82" />
           </a>
           <nav className="desktop-nav" aria-label="Main navigation">
-            {data.navigation
-              .filter((n) => n.in_header)
+            {mainNav
               .map((n) => (
                 <a
                   key={n.id}
                   href={n.url}
-                  className={pathname === n.url ? "active" : undefined}
-                  aria-current={pathname === n.url ? "page" : undefined}
+                  className={isActive(n.url) ? "active" : undefined}
+                  aria-current={isActive(n.url) ? "page" : undefined}
                 >
                   {n.label}
                 </a>
               ))}
           </nav>
-          <a className="header-enquire" href={wa}>
+          <a className="header-enquire" href={wa} aria-label="Let’s plan a stay">
             <Icon name="whatsapp" size={18} />
             <span>Let’s plan a stay</span>
           </a>
@@ -110,13 +112,12 @@ export default function PublicChrome({
           </button>
         </div>
         <nav aria-label="Mobile navigation">
-          {data.navigation
-            .filter((n) => n.in_header)
+          {mainNav
             .map((n) => (
               <a
                 key={n.id}
                 href={n.url}
-                aria-current={pathname === n.url ? "page" : undefined}
+                aria-current={isActive(n.url) ? "page" : undefined}
               >
                 {n.label}
                 <Icon name="arrow" />
@@ -162,7 +163,11 @@ export default function PublicChrome({
           <div>
             <h2>Take a look around</h2>
             {data.navigation
-              .filter((n) => n.in_footer)
+              .filter(
+                (n) =>
+                  n.in_footer &&
+                  !["/locations", "/offers"].includes(n.url.replace(/\/$/, "")),
+              )
               .map((n) => (
                 <a key={n.id} href={n.url}>
                   {n.label}
@@ -193,17 +198,8 @@ export default function PublicChrome({
           <p>
             © {new Date().getFullYear()} {s.site_name}. {s.copyright}
           </p>
-          <div>
-            <a href="/image-credits">Image credits</a>
-            <a href="/admin">Admin</a>
-          </div>
+          <p>Built by Vibe Stayz</p>
         </div>
-        {s.show_demo === 1 && (
-          <div className="demo-notice">
-            Preview collection · Properties, prices and guest stories are
-            examples. Stay imagery is illustrative.
-          </div>
-        )}
       </footer>
       {s.floating_enabled === 1 && !detail && (
         <a href={wa} className="floating-wa" aria-label="Enquire on WhatsApp">
