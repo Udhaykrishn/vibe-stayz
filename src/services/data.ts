@@ -38,6 +38,13 @@ export const db = () => runtime().supabase;
 function fail(error: { message: string } | null, context: string) {
   if (error) throw new Error(`${context}: ${error.message}`);
 }
+const isMissingFaqTable = (
+  error: { code?: string; message?: string } | null,
+) =>
+  !!error &&
+  (error.code === "PGRST205" ||
+    (error.message?.includes("public.faqs") &&
+      error.message.includes("schema cache")));
 const byOrderName = <
   T extends { display_order?: number; name?: string; title?: string },
 >(
@@ -97,9 +104,10 @@ export const siteData = cache(async (mode: DataMode = "public"): Promise<SiteDat
     db().from("offer_resorts").select("*"),
     db().from("faqs").select("*"),
   ]);
-  results.forEach((result, index) =>
-    fail(result.error, `Load site data ${index + 1}`),
-  );
+  results.forEach((result, index) => {
+    if (index === 11 && isMissingFaqTable(result.error)) return;
+    fail(result.error, `Load site data ${index + 1}`);
+  });
   const rawResorts = (results[0].data || []) as Resort[];
   const rawLocations = (results[1].data || []) as Location[];
   const rawAmenities = (results[2].data || []) as Amenity[];
@@ -194,7 +202,9 @@ export const siteData = cache(async (mode: DataMode = "public"): Promise<SiteDat
     })),
     content,
     navigation,
-    faqs: ((results[11].data || []) as FAQ[]).filter(f => draft || f.published).sort(byOrderName),
+    faqs: ((isMissingFaqTable(results[11].error) ? [] : results[11].data || []) as FAQ[])
+      .filter(f => draft || f.published)
+      .sort(byOrderName),
     offerLinks: admin ? offerRelations : [],
   };
 });
