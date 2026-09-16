@@ -11,6 +11,7 @@ export const mediaPath = (id: string) => `/media/${id}`;
 /** Every column an editor can point at a library image. */
 export const imageColumns: { table: string; label: string; columns: string[] }[] =
   [
+    { table: "hero_banners", label: "Hero banners", columns: ["image"] },
     { table: "resorts", label: "Resorts", columns: ["cover_image"] },
     { table: "resort_images", label: "Resort galleries", columns: ["url"] },
     { table: "locations", label: "Destinations", columns: ["cover_image"] },

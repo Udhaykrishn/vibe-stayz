@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-type Stamped = { updated_at: string; is_demo: number };
+type Stamped = { updated_at: string };
 export type Location = Stamped & {
   id: string;
   name: string;
@@ -120,7 +120,6 @@ export type Settings = {
   seo_description: string;
   og_image: string;
   copyright: string;
-  show_demo: number;
   updated_at: string;
 };
 export type NavItem = Stamped & {
@@ -169,7 +168,20 @@ export type ResortView = Resort & {
   offers: Offer[];
   promotion?: Promotion;
 };
+export type HeroBanner = {
+  id: string;
+  title: string;
+  subtitle: string;
+  label: string;
+  image: string;
+  cta_label: string;
+  cta_url: string;
+  display_order: number;
+  active: number;
+  updated_at: string;
+};
 export type SiteData = {
+  banners: HeroBanner[];
   settings: Settings;
   resorts: ResortView[];
   locations: Location[];
@@ -184,7 +196,6 @@ export interface RuntimeEnv {
   supabase: SupabaseClient;
   ADMIN_PASSWORD_HASH?: string;
   ADMIN_USERNAME?: string;
-  DEMO_MODE?: string;
   SITE_ORIGIN?: string;
   SUPABASE_STORAGE_BUCKET: string;
 }

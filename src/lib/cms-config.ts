@@ -76,9 +76,6 @@ const visibility: Group = {
     f("published", "Published", "checkbox"),
     f("featured", "Featured", "checkbox"),
     f("display_order", "Display order", "number"),
-    f("is_demo", "Sample content", "checkbox", {
-      help: "Sample records are hidden when demo content is disabled.",
-    }),
   ],
 };
 const photo: Group = {
@@ -89,6 +86,28 @@ const photo: Group = {
   ],
 };
 export const cms: Record<string, Config> = {
+  hero_banners: {
+    label: "Banners / Hero Carousel",
+    singular: "Banner",
+    icon: "image",
+    description: "Manage the homepage carousel independently of locations, resorts and offers. Active banners rotate every nine seconds, in display order.",
+    groups: [
+      { title: "Banner content", fields: [
+        f("title", "Title", "text", { required: true }),
+        f("subtitle", "Short subtitle", "textarea"),
+        f("label", "Small location / category label", "text", { help: "Free text for this banner; not linked to Locations." }),
+        f("image", "Background image", "image", { required: true, help: "Upload or choose a wide landscape image. Keep the subject near the centre for mobile cropping." }),
+      ] },
+      { title: "Call to action", fields: [
+        f("cta_label", "CTA text", "text", { required: true }),
+        f("cta_url", "CTA link", "text", { required: true, help: "Use a site path such as /resorts, or a full https:// link." }),
+      ] },
+      { title: "Visibility & order", fields: [
+        f("active", "Active", "checkbox", { help: "Inactive banners appear only in admin preview." }),
+        f("display_order", "Display order", "number", { required: true, help: "Lower numbers appear first." }),
+      ] },
+    ],
+  },
   resorts: {
     label: "Resorts",
     singular: "Resort",
@@ -274,9 +293,7 @@ export const cms: Record<string, Config> = {
           f("start_date", "Show from", "date"),
           f("end_date", "Show until (inclusive)", "date"),
           f("active", "Active", "checkbox"),
-          f("featured_home", "Feature on homepage", "checkbox"),
           f("display_order", "Display order", "number"),
-          f("is_demo", "Sample content", "checkbox"),
         ],
       },
     ],
@@ -313,7 +330,7 @@ export const cms: Record<string, Config> = {
     singular: "Page section",
     icon: "file",
     description:
-      "Shape your story without touching the code, including the homepage carousel.",
+      "Shape your page content. Manage the homepage hero separately in Banners / Hero Carousel.",
     groups: [
       {
         title: "Page section",
@@ -331,13 +348,13 @@ export const cms: Record<string, Config> = {
           }),
           f("section", "Section key", "text", {
             required: true,
-            help: "Keep existing section keys to preserve their position on the site. The homepage carousel uses carousel_stay (slides for each stay), carousel_destination (slides for each destination) and carousel_fallback (the standby slide shown when nothing else is ready).",
+            help: "Keep existing section keys to preserve their position on the site.",
           }),
           f("eyebrow", "Small heading", "text", {
-            help: "On a carousel section this is the small badge above the heading.",
+            help: "The small label above the section heading.",
           }),
           f("title", "Heading", "textarea", {
-            help: "Carousel sections may use {name}, {location} and {type}. Each slide fills them in from the stay or destination it shows.",
+            help: "The heading displayed in this page section.",
           }),
           f("body", "Body text", "textarea", { full: true }),
           f("image", "Section image", "image"),
@@ -352,14 +369,13 @@ export const cms: Record<string, Config> = {
     label: "Navigation",
     singular: "Navigation item",
     icon: "menu",
-    description: "Keep important pages within easy reach.",
+    description: "Manage footer links. The main menu contains Home, Resorts, About and Contact, with a WhatsApp button.",
     groups: [
       {
         title: "Navigation item",
         fields: [
           f("label", "Link label", "text", { required: true }),
           f("url", "Link URL", "text", { required: true }),
-          f("in_header", "Show in header", "checkbox"),
           f("in_footer", "Show in footer", "checkbox"),
           f("display_order", "Display order", "number"),
         ],
@@ -422,9 +438,6 @@ export const cms: Record<string, Config> = {
         title: "Search & launch",
         fields: [
           f("og_image", "Default sharing image", "image"),
-          f("show_demo", "Show sample collection", "checkbox", {
-            help: "Turn off before launch. Hides sample properties, locations and offers, and removes preview noindex.",
-          }),
         ],
       },
     ],

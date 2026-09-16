@@ -23,7 +23,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         description: r.seo_description || r.short_description,
         image: r.cover_image,
         path: `/resorts/${slug}`,
-        noindex: !!r.is_demo,
       })
     : { title: "Stay not found" };
 }
@@ -56,9 +55,7 @@ export default async function ResortPage({ params }: Props) {
           display_order: 0,
         },
       ];
-  const schema = r.is_demo
-    ? undefined
-    : {
+  const schema = {
         "@context": "https://schema.org",
         "@graph": [
           {
@@ -102,12 +99,10 @@ export default async function ResortPage({ params }: Props) {
       };
   return (
     <PublicLayout data={data} detail>
-      {schema && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: safeJson(schema) }}
-        />
-      )}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: safeJson(schema) }}
+      />
       <div className="container property-top">
         <div className="breadcrumbs">
           <a href="/">Home</a>
@@ -129,11 +124,6 @@ export default async function ResortPage({ params }: Props) {
           <ShareButton />
         </div>
         <Gallery images={photos} name={r.name} />
-        {r.is_demo === 1 && (
-          <p className="property-demo">
-            Concept stay · Sample details and rates. Images are illustrative.
-          </p>
-        )}
         <div className="property-columns">
           <div className="property-main">
             <div className="property-facts">

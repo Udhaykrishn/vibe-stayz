@@ -150,3 +150,16 @@ select option:checked,select option:hover{background:var(--lime);color:var(--for
 @media(max-width:374px){.destination-tiles{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.destination-tile,.destination-tile-icon,.destination-tile-arrow{transition:none}.destination-tile:hover{transform:none}}
 .preview-banner{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;z-index:60;display:flex;align-items:center;gap:13px;max-width:min(640px,calc(100% - 28px));padding:10px 15px;border-radius:999px;background:#0a241d;color:#e7eddd;border:1px solid #c4d6aa55;box-shadow:0 10px 30px #0000002e;font-size:12px}.preview-banner>svg{color:var(--lime)}.preview-banner p{display:flex;align-items:baseline;gap:9px;min-width:0;white-space:normal}.preview-banner strong{font-weight:500;color:var(--lime)}.preview-banner span{color:#b9c7b3;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.preview-banner form{margin:0}.preview-banner a,.preview-banner button{border:1px solid #c4d6aa55;background:none;color:inherit;border-radius:999px;padding:6px 13px;font-size:11px;white-space:nowrap}.preview-banner button{color:#0a241d;background:var(--lime);border-color:var(--lime)}@media(max-width:767px){.preview-banner{bottom:12px;gap:9px;padding:8px 11px}.preview-banner span{display:none}}@media print{.preview-banner{display:none}}
+
+/* Keep banner controls clear of the copy and the overlapping search form. */
+.promotion-hero .hero-pagination{width:auto;max-width:calc(100% - 48px);flex-wrap:nowrap;gap:8px}
+.hero-dots{display:flex;min-width:0;overflow-x:auto;scrollbar-width:thin}
+.promotion-hero .hero-pagination button{flex:0 0 44px;min-width:44px;width:44px}
+.promotion-hero .hero-prev,.promotion-hero .hero-next{z-index:3}
+@media(max-width:767px){
+  .promotion-hero .hero-prev,.promotion-hero .hero-next{top:47%;bottom:auto;width:44px;height:44px}
+  .promotion-hero .hero-prev{left:8px}
+  .promotion-hero .hero-next{right:8px}
+  .promotion-hero .hero-slide-content{width:100%;padding-inline:60px}
+  .promotion-hero .hero-slide-content h1,.promotion-hero .hero-slide-content h2{font-size:clamp(34px,8vw,52px)}
+}

@@ -126,16 +126,7 @@ export default async function Dashboard() {
           </a>
           <a href="/admin/resorts">
             <Icon name="image" size={19} />
-            <span>Replace sample stays and photos</span>
-            <Icon name="arrow" size={16} />
-          </a>
-          <a href="/admin/site_settings/global">
-            <Icon name={data.settings.show_demo ? "leaf" : "check"} size={19} />
-            <span>
-              {data.settings.show_demo
-                ? "Hide sample content before launch"
-                : "Sample content is hidden"}
-            </span>
+            <span>Review stays and photos</span>
             <Icon name="arrow" size={16} />
           </a>
         </section>

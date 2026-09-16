@@ -1,12 +1,12 @@
 import "server-only";
 import { runtime } from "../lib/env";
 import { previewing } from "../lib/preview";
-import { initializeContent } from "../lib/seed";
 import { cache } from "react";
 import { effectivePromotion, offerStatus } from "../lib/offers";
 import type { FAQ, OfferLink } from "../types";
 import type {
   SiteData,
+  HeroBanner,
   Settings,
   Resort,
   Location,
@@ -19,6 +19,7 @@ import type {
 } from "../types";
 
 const TABLES = [
+  "hero_banners",
   "resorts",
   "locations",
   "amenities",
@@ -74,15 +75,13 @@ export async function recordById<T>(
 /**
  * `public` renders exactly what a visitor sees. `preview` relaxes the visibility
  * filters only — drafts, inactive amenities and scheduled campaigns appear, while
- * hidden addresses, sample-content settings and archived stays stay as they are
- * on the live site. `admin` returns everything, unmasked, for the editors.
+ * hidden addresses and archived stays stay as they are on the live site.
+ * `admin` returns everything, unmasked, for the editors.
  */
 export type DataMode = "public" | "preview" | "admin";
 export const siteData = cache(async (mode: DataMode = "public"): Promise<SiteData> => {
   const admin = mode === "admin";
   const draft = mode !== "public";
-  const env = runtime();
-  await initializeContent(env);
   const settingsResult = await db()
     .from("site_settings")
     .select("*")
@@ -103,6 +102,7 @@ export const siteData = cache(async (mode: DataMode = "public"): Promise<SiteDat
     db().from("nearby_attractions").select("*"),
     db().from("offer_resorts").select("*"),
     db().from("faqs").select("*"),
+    db().from("hero_banners").select("*"),
   ]);
   results.forEach((result, index) => {
     if (index === 11 && isMissingFaqTable(result.error)) return;
@@ -112,16 +112,13 @@ export const siteData = cache(async (mode: DataMode = "public"): Promise<SiteDat
   const rawLocations = (results[1].data || []) as Location[];
   const rawAmenities = (results[2].data || []) as Amenity[];
   const rawOffers = (results[3].data || []) as Offer[];
-  const showDemo = admin || !!settings.show_demo;
-  const visible = <T extends { is_demo: number }>(items: T[]) =>
-    showDemo ? items : items.filter((item) => !item.is_demo);
-  const locations = visible(rawLocations)
+  const locations = rawLocations
     .filter((item) => draft || !!item.published)
     .sort(byOrderName);
-  const amenities = visible(rawAmenities)
+  const amenities = rawAmenities
     .filter((item) => draft || !!item.active)
     .sort(byOrderName);
-  const offers = visible(rawOffers)
+  const offers = rawOffers
     .filter((item) => draft || offerStatus(item) === "Active")
     .sort(byOrderName);
   const content = ((results[4].data || []) as PageContent[]).sort(byOrderName);
@@ -143,7 +140,7 @@ export const siteData = cache(async (mode: DataMode = "public"): Promise<SiteDat
     byOrderName,
   );
   const offerRelations = (results[10].data || []) as OfferLink[];
-  const resorts = visible(rawResorts)
+  const resorts = rawResorts
     .filter(
       (item) => admin || (!item.archived && (draft || !!item.published)),
     )
@@ -189,6 +186,9 @@ export const siteData = cache(async (mode: DataMode = "public"): Promise<SiteDat
     }));
   return {
     settings,
+    banners: ((results[12].data || []) as HeroBanner[])
+      .filter(banner => draft || !!banner.active)
+      .sort((a, b) => a.display_order - b.display_order || a.id.localeCompare(b.id)),
     resorts: views,
     locations,
     amenities,

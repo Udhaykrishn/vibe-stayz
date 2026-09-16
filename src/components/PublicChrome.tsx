@@ -21,7 +21,12 @@ export default function PublicChrome({
   const [scrolled, setScrolled] = useState(false);
   const s = data.settings;
   const wa = whatsappLink(s);
-  const mainNav = data.navigation.filter((item) => item.in_header);
+  const mainNav = [
+    { id: "home", label: "Home", url: "/" },
+    { id: "resorts", label: "Resorts", url: "/resorts" },
+    { id: "about", label: "About", url: "/about" },
+    { id: "contact", label: "Contact", url: "/contact" },
+  ];
   const isActive = (url: string) => url === "/" ? pathname === "/" : pathname.startsWith(url);
   const openMenu = () => {
     if (typeof menu.current?.showModal === "function") menu.current.showModal();

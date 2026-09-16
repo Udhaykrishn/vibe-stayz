@@ -52,6 +52,7 @@ export function recordPath(
       return stay(record.resort_id) || "/resorts";
     case "amenities":
       return "/resorts";
+    case "hero_banners":
     case "faqs":
     case "navigation":
     case "site_settings":

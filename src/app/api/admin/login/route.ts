@@ -1,7 +1,6 @@
 import { cookies } from "next/headers";
 import { runtime } from "@/lib/env";
 import { checkPassword, randomToken, sha256 } from "@/lib/auth";
-import { initializeContent } from "@/lib/seed";
 export async function POST(request: Request) {
   const env = runtime();
   if (!env.ADMIN_PASSWORD_HASH)
@@ -31,7 +30,6 @@ export async function POST(request: Request) {
         { error: "Please enter your username and password." },
         { status: 400 },
       );
-    await initializeContent(env);
     const now = Date.now();
     const ip =
       request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "local";

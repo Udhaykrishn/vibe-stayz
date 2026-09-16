@@ -27,7 +27,7 @@ export default async function Editor({ params, searchParams }: Props) {
   let record: Record<string, unknown> = {
     published: 0,
     featured: 0,
-    active: 1,
+    active: entity === "hero_banners" ? 0 : 1,
     max_guests: 2,
     rating: 5,
     display_order: 0,
@@ -47,6 +47,7 @@ export default async function Editor({ params, searchParams }: Props) {
   if (!isNew) {
     record = (await recordById<Record<string, unknown>>(entity, id)) || {};
     if (!record.id) notFound();
+    if (entity === "page_content" && record.page === "home" && ["hero", "carousel_stay", "carousel_destination", "carousel_fallback"].includes(String(record.section))) redirect("/admin/hero_banners");
   }
   const resort =
     entity === "resorts"

@@ -22,7 +22,7 @@ export default async function EntityList({ params, searchParams }: Props) {
   if (entity === "offers") return <AdminLayout title="Offers" description={config.description} actions={<div className="page-actions"><a href={previewHref("/offers")} className="button button-outline"><Icon name="eye" size={16}/>Preview site</a><a href="/admin/offers/new" className="button button-dark">Create campaign</a></div>}><OfferAdminList data={await siteData("admin")}/></AdminLayout>;
   const all = (
     await tableRows<Record<string, string | number | null>>(entity)
-  ).sort((a, b) => Number(a.display_order || 0) - Number(b.display_order || 0));
+  ).filter(r => entity !== "page_content" || r.page !== "home" || !["hero", "carousel_stay", "carousel_destination", "carousel_fallback"].includes(String(r.section))).sort((a, b) => Number(a.display_order || 0) - Number(b.display_order || 0));
   const search = await searchParams;
   const q = (search.q || "").toLowerCase();
   const status = search.status || "";
@@ -33,7 +33,6 @@ export default async function EntityList({ params, searchParams }: Props) {
           .toLowerCase()
           .includes(q)) &&
       (!status ||
-        (status === "sample" && r.is_demo) ||
         (status === "published" && (r.published || r.active) && !r.archived) ||
         (status === "draft" && !(r.published || r.active)) ||
         (status === "archived" && r.archived)),
@@ -86,7 +85,6 @@ export default async function EntityList({ params, searchParams }: Props) {
             <option value="">All statuses</option>
             <option value="published">Published / active</option>
             <option value="draft">Draft / inactive</option>
-            <option value="sample">Sample content</option>
             {entity === "resorts" && <option value="archived">Archived</option>}
           </select>
           <button className="button button-outline" type="submit">
@@ -131,7 +129,6 @@ export default async function EntityList({ params, searchParams }: Props) {
                         </strong>
                         <small>
                           {r.subtitle || r.category || r.badge || ""}
-                          {r.is_demo ? " · Sample" : ""}
                         </small>
                       </span>
                     </a>
@@ -143,7 +140,7 @@ export default async function EntityList({ params, searchParams }: Props) {
                       {r.archived
                         ? "Archived"
                         : r.published === 0 || r.active === 0
-                          ? "Draft"
+                          ? entity === "hero_banners" ? "Inactive" : "Draft"
                           : "Active"}
                     </span>
                     {r.featured === 1 && (

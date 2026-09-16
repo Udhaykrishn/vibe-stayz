@@ -39,7 +39,6 @@ export function pageMetadata(
       images: [imageUrl],
     },
     icons: { icon: s.favicon },
-    robots:
-      noindex || s.show_demo === 1 ? { index: false, follow: true } : undefined,
+    robots: noindex ? { index: false, follow: true } : undefined,
   };
 }
