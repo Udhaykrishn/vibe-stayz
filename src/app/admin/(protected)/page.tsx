@@ -1,6 +1,5 @@
 import AdminLayout from "@/components/AdminLayout";
 import Icon from "@/components/Icon";
-import AdminAssistant from "@/components/AdminAssistant";
 import { siteData } from "@/services/data";
 import { previewHref } from "@/lib/preview";
 export const metadata = { title: "Dashboard" };
@@ -50,10 +49,6 @@ export default async function Dashboard() {
       description="A little care behind the scenes. A lovely experience for every guest."
       actions={
         <div className="page-actions">
-          <a href="#assistant" className="button button-outline">
-            <Icon name="star" size={16} />
-            Ask assistant
-          </a>
           <a href={previewHref("/")} className="button button-outline">
             <Icon name="eye" size={16} />
             Preview site
@@ -76,7 +71,6 @@ export default async function Dashboard() {
           </a>
         ))}
       </div>
-      <AdminAssistant />
       <div className="dashboard-columns">
         <section className="admin-panel">
           <div className="panel-heading">
