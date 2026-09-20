@@ -63,8 +63,6 @@ async function saveResortWithoutRpc(
 
   const compatibleFields = { ...fields };
   const optionalMigrationFields = new Set([
-    "latitude",
-    "longitude",
     "map_embed_url",
   ]);
   for (;;) {
