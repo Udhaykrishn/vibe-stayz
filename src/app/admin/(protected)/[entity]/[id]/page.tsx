@@ -2,6 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import AdminLayout from "@/components/AdminLayout";
 import Icon from "@/components/Icon";
 import OfferPricingEditor from "@/components/OfferPricingEditor";
+import AssistantDraftApply from "@/components/AssistantDraftApply";
 import { Field, MediaPicker } from "@/components/AdminFields";
 import { cms } from "@/lib/cms-config";
 import { isEntity, recordById, siteData } from "@/services/data";
@@ -119,6 +120,9 @@ export default async function Editor({ params, searchParams }: Props) {
             )}
           </nav>
           <div className="editor-content">
+            {isNew && ["resorts", "locations"].includes(entity) && (
+              <AssistantDraftApply entity={entity} />
+            )}
             {config.groups.map((group, index) => (
               <section
                 key={group.title}
