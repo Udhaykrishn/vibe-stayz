@@ -25,14 +25,14 @@ export default async function Resorts({searchParams}:Props) {
  values.amenity.forEach(a=>chips.push(["amenity",data.amenities.find(x=>x.id===a)?.name||a,a]));
  const remove=(key:string,value?:string)=>{const p=new URLSearchParams();Object.entries(values).forEach(([k,v])=>{if(Array.isArray(v))v.filter(x=>!(k===key&&x===value)).forEach(x=>p.append(k,x));else if(v&&k!==key)p.set(k,v);});return "/resorts?"+p.toString();};
  return <PublicLayout data={data}><div className="listing-container">
-  <h1 className="sr-only">Find your stay in Kerala</h1>
+  <section className="collection-heading"><p className="eyebrow">THE VIBE STAYZ COLLECTION</p><h1>Find your stay in Kerala.</h1><p>Choose your destination, bring your favourite people, and find a place to slow down.</p></section>
 
   <div className="discovery-layout"><StayFilters locations={data.locations.map(({slug,name})=>({slug,name}))} amenities={data.amenities.map(({id,name})=>({id,name}))} types={[...new Set(data.resorts.map(r=>r.property_type))]} values={values}/>
   <StaySearch locations={data.locations.map(({slug,name})=>({slug,name}))} values={values} instant/>
   <section className="listing-results" aria-label="Stay results"><div className="results-head"><p role="status" aria-live="polite"><strong>{results.length}</strong> {results.length===1?"stay":"stays"} to make your own</p><SortSelect value={values.sort}/></div>
   {chips.length>0&&<div className="active-filters" aria-label="Active filters">{chips.map(([key,label,value])=><a key={key+(value||"")} href={remove(key,value)}>{label}<Icon name="close" size={14}/><span className="sr-only">Remove filter</span></a>)}<a href="/resorts">Clear all</a></div>}
-  <div className="stays-grid">{results.map(r=><ResortCard key={r.id} resort={r}/>)}</div>
-  {!results.length&&<div className="empty-state"><Icon name="search" size={32}/><h2>A little more room to explore.</h2><p>Try fewer filters or a different destination.<br/>Our team can also help you find a stay for your group.</p><a className="button button-dark" href="/resorts">Clear filters</a><a className="text-link" href="/contact">Ask our team</a></div>}
+  <div className="stays-grid">{results.map(r=><ResortCard customer key={r.id} resort={r}/>)}</div>
+  {!results.length&&<div className="empty-state"><Icon name="search" size={32}/><h2>{chips.length ? "Let’s broaden the search." : "New stays are on their way."}</h2><p>{chips.length ? "Try fewer filters or choose another destination." : "We’re growing our Kerala collection. Tell us where you’d like to go and our team can help."}</p>{chips.length > 0 && <a className="button button-dark" href="/resorts">Clear filters</a>}<a className={chips.length ? "text-link" : "button button-dark"} href="/contact">Ask our team</a></div>}
   </section></div></div>
   <CTA data={data}/></PublicLayout>;
 }

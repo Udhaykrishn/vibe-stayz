@@ -103,8 +103,8 @@ export default function PromotionHero({ banners, children }: { banners: HeroBann
             </div>
           </div>
         ))}
+        {!banners.length && <div className="hero-slide is-active"><Photo className="promotion-image" src="/images/hero-1680.webp" alt="An illustrated villa overlooking the Kerala hills" eager sizes="100vw" /><div className="promotion-shade" /><div className="hero-slide-content container"><h1>Find your next escape.</h1><p className="hero-slide-subtitle">Explore our collection of beautiful stays.</p><a href="/resorts" className="button button-lime">Explore resorts<Icon name="arrow" size={19} /></a></div></div>}
       </div>
-      {!banners.length && <div className="hero-slide-content container"><h1>Find your next escape.</h1><p className="hero-slide-subtitle">Explore our collection of beautiful stays.</p><a href="/resorts" className="button button-lime">Explore resorts<Icon name="arrow" size={19} /></a></div>}
       {banners.length > 1 && <>
         <button type="button" className="hero-prev icon-button" aria-label="Previous banner" onClick={() => move(-1)}><Icon name="arrow" /></button>
         <button type="button" className="hero-next icon-button" aria-label="Next banner" onClick={() => move(1)}><Icon name="arrow" /></button>

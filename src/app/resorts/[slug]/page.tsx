@@ -274,7 +274,7 @@ export default async function ResortPage({ params }: Props) {
             />
             <div className="stays-grid">
               {similar.map((s) => (
-                <ResortCard key={s.id} resort={s} />
+                <ResortCard customer key={s.id} resort={s} />
               ))}
             </div>
           </section>

@@ -5,7 +5,7 @@ export default async function NotFound() {
   const data = await publicData();
   return (
     <PublicLayout data={data}>
-      <div className="container section">
+      <div className="container section not-found-page">
         <div className="empty-state">
           <p className="eyebrow">404 · THIS PATH ENDS HERE</p>
           <h1>Let’s find you somewhere lovely.</h1>

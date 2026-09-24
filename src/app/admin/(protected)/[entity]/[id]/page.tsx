@@ -229,23 +229,36 @@ export default async function Editor({ params, searchParams }: Props) {
                   className="admin-panel editor-group"
                   id="amenity-editor"
                 >
-                  <h2>Amenities at this stay</h2>
-                  <div className="amenity-checkboxes">
-                    {data.amenities.map((a) => (
-                      <label key={a.id}>
-                        <input
-                          type="checkbox"
-                          name="amenity_ids"
-                          value={a.id}
-                          defaultChecked={resort?.amenities.some(
-                            (x) => x.id === a.id,
-                          )}
-                        />
-                        <Icon name={a.icon} size={18} />
-                        {a.name}
-                      </label>
-                    ))}
+                  <div className="panel-heading">
+                    <h2>Amenities at this stay</h2>
+                    <a href="/admin/amenities/new" className="button button-outline">
+                      <Icon name="plus" size={16} />
+                      Add amenity
+                    </a>
                   </div>
+                  {data.amenities.length ? (
+                    <div className="amenity-checkboxes">
+                      {data.amenities.map((a) => (
+                        <label key={a.id}>
+                          <input
+                            type="checkbox"
+                            name="amenity_ids"
+                            value={a.id}
+                            defaultChecked={resort?.amenities.some(
+                              (x) => x.id === a.id,
+                            )}
+                          />
+                          <Icon name={a.icon} size={18} />
+                          {a.name}
+                        </label>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="field-help">
+                      No amenities have been added yet. Add an amenity first,
+                      then return here to select it for this stay.
+                    </p>
+                  )}
                 </section>
               </>
             )}

@@ -3,6 +3,7 @@ import { money, whatsappLink } from "@/utils/format";
 import Icon from "./Icon";
 import Photo from "./Photo";
 import StayPrice from "./StayPrice";
+import { destinationImages } from "@/lib/destination-images";
 
 export function SectionHeading({
   eyebrow,
@@ -33,7 +34,7 @@ export function SectionHeading({
     </div>
   );
 }
-export function ResortCard({ resort: r }: { resort: ResortView }) {
+export function ResortCard({ resort: r, customer = false }: { resort: ResortView; customer?: boolean }) {
   return (
     <article className="stay-card">
       <a
@@ -42,10 +43,11 @@ export function ResortCard({ resort: r }: { resort: ResortView }) {
         aria-label={`View ${r.name}`}
       >
         <Photo src={r.cover_image} alt={r.image_alt || r.name} />
-        <span className="photo-tag">{r.property_type}</span>
-        {r.promotion ? <span className="offer-dot">{r.promotion.discount}% off</span> : r.featured === 1 ? <span className="offer-dot">Featured</span> : null}
+        {!customer && <span className="photo-tag">{r.property_type}</span>}
+        {!customer && (r.promotion ? <span className="offer-dot">{r.promotion.discount}% off</span> : r.featured === 1 ? <span className="offer-dot">Featured</span> : null)}
       </a>
       <div className="stay-info">
+        {customer && <div className="stay-category"><span>{r.property_type}</span>{r.promotion ? <span>{r.promotion.discount}% off</span> : r.featured === 1 ? <span>Featured</span> : null}</div>}
         <p className="card-location">
           <Icon name="pin" size={14} />
           {r.location.name}, Kerala
@@ -92,12 +94,13 @@ export function LocationCard({
   location: Location;
   count: number;
 }) {
+  const cover = l.cover_image || destinationImages[l.slug];
   return (
-    <a className="destination-card" href={`/locations/${l.slug}`}>
-      <Photo src={l.cover_image} alt={l.image_alt || l.name} />
+    <a className={`destination-card${cover ? "" : " destination-without-photo"}`} href={`/locations/${l.slug}`}>
+      {cover ? <Photo src={cover} alt={l.image_alt || l.name} sizes="(max-width:767px) 100vw, 50vw" /> : <span className="destination-placeholder" aria-hidden="true"><Icon name={l.icon || "pin"} size={44} /></span>}
       <div className="destination-copy">
         <span className="destination-count">
-          {count} {count === 1 ? "stay" : "stays"} to discover
+          {count ? `${count} ${count === 1 ? "stay" : "stays"} to discover` : "Stays coming soon"}
         </span>
         <h3>{l.name}</h3>
         <p>{l.subtitle}</p>
@@ -133,9 +136,11 @@ export function DestinationTile({
 export function OfferCard({
   offer: o,
   settings,
+  customer = false,
 }: {
   offer: SiteData["offers"][number];
   settings: SiteData["settings"];
+  customer?: boolean;
 }) {
   const href =
     o.cta_type === "custom" && o.cta_url ? o.cta_url : o.cta_type === "resort" && o.resorts[0]
@@ -145,9 +150,10 @@ export function OfferCard({
     <article className="offer-card" id={`offer-${o.id}`}>
       <div className="offer-image">
         <Photo src={o.image} alt={o.title} />
-        <span className="photo-tag">{o.badge || "Escape idea"}</span>
+        {!customer && <span className="photo-tag">{o.badge || "Escape idea"}</span>}
       </div>
       <div className="offer-copy">
+        {customer && <span className="offer-category">{o.badge || "Escape idea"}</span>}
         <p className="eyebrow">{o.promotional_text}</p>
         <h3>{o.title}</h3>
         <p>{o.description}</p>

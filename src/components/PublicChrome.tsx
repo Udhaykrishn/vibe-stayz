@@ -18,6 +18,7 @@ export default function PublicChrome({
 }) {
   const pathname = usePathname() || "/";
   const menu = useRef<HTMLDialogElement>(null);
+  const sentinel = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
   const s = data.settings;
   const wa = whatsappLink(s);
@@ -37,9 +38,8 @@ export default function PublicChrome({
     else menu.current?.removeAttribute("open");
   };
   useEffect(() => {
-    const update = () => setScrolled(window.scrollY > 35);
-    update();
-    window.addEventListener("scroll", update, { passive: true });
+    const observer = new IntersectionObserver(([entry]) => setScrolled(!entry.isIntersecting));
+    if (sentinel.current) observer.observe(sentinel.current);
     const onError = (event: Event) => {
       const image = event.target as HTMLImageElement;
       if (!(image instanceof HTMLImageElement) || !image.matches("[data-photo]") || image.dataset.fallback) return;
@@ -52,13 +52,14 @@ export default function PublicChrome({
     document.body.classList.toggle("has-hero", transparent);
     document.body.classList.toggle("has-mobile-enquiry", detail);
     return () => {
-      window.removeEventListener("scroll", update);
+      observer.disconnect();
       document.removeEventListener("error", onError, true);
       document.body.classList.remove("has-hero", "has-mobile-enquiry");
     };
   }, [transparent, detail]);
   return (
-    <>
+    <div className="customer-site">
+      <div ref={sentinel} className="header-sentinel" aria-hidden="true" />
       <a href="#main" className="skip-link">
         Skip to content
       </a>
@@ -68,7 +69,7 @@ export default function PublicChrome({
       >
         <div className="header-inner container">
           <a className="brand" href="/" aria-label={`${s.site_name} home`}>
-            <img src={s.logo} alt={s.site_name} width="82" height="82" />
+            <img src="/images/logo.svg" className="brand-logo" alt={s.site_name} width="1038" height="500" />
           </a>
           <nav className="desktop-nav" aria-label="Main navigation">
             {mainNav
@@ -133,7 +134,7 @@ export default function PublicChrome({
           <Icon name="whatsapp" />
           {s.cta_label}
         </a>
-        <p className="menu-tagline">STAY · ESCAPE · EXPERIENCE</p>
+        <p className="menu-tagline">Your next Kerala escape starts here.</p>
       </dialog>
       <main id="main">{children}</main>
       <footer className="site-footer">
@@ -141,10 +142,11 @@ export default function PublicChrome({
           <div className="footer-brand">
             <a href="/" aria-label={`${s.site_name} home`}>
               <img
-                src={s.logo}
+                src="/images/logo.svg"
+                className="brand-logo"
                 alt={s.site_name}
-                width="108"
-                height="108"
+                width="1038"
+                height="500"
                 loading="lazy"
               />
             </a>
@@ -196,14 +198,14 @@ export default function PublicChrome({
             {s.phone && <a href={`tel:${s.phone}`}>{s.phone}</a>}
             {s.email && <a href={`mailto:${s.email}`}>{s.email}</a>}
             {s.address && <p>{s.address}</p>}
-            <p className="footer-motto">STAY · ESCAPE · EXPERIENCE</p>
+            <p className="footer-motto">Stay. Escape. Experience.</p>
           </div>
         </div>
         <div className="container footer-bottom">
           <p>
             © {new Date().getFullYear()} {s.site_name}. {s.copyright}
           </p>
-          <p>Built by Vibe Stayz</p>
+          <a href="/image-credits">Photography credits</a>
         </div>
       </footer>
       {s.floating_enabled === 1 && !detail && (
@@ -211,6 +213,6 @@ export default function PublicChrome({
           <Icon name="whatsapp" size={26} />
         </a>
       )}
-    </>
+    </div>
   );
 }

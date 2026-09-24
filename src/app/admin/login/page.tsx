@@ -23,10 +23,11 @@ export default async function Login() {
       <div className="login-brand-panel">
         <a href="/">
           <img
-            src="/images/brand-round.png"
+            src="/images/logo.svg"
+            className="brand-logo"
             alt="Vibe Stayz"
-            width="100"
-            height="100"
+            width="1038"
+            height="500"
           />
         </a>
         <div>

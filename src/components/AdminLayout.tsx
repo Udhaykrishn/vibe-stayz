@@ -53,10 +53,11 @@ export default async function AdminLayout({
       <aside className="admin-sidebar">
         <a href="/admin" className="admin-brand">
           <img
-            src="/images/brand-round.png"
+            src="/images/logo.svg"
+            className="brand-logo"
             alt="Vibe Stayz"
-            width="65"
-            height="65"
+            width="1038"
+            height="500"
           />
           <span>
             VIBE STAYZ<small>THE CONTENT STUDIO</small>

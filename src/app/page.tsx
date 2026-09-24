@@ -7,7 +7,7 @@ import FAQSection from "@/components/FAQSection";
 import Icon from "@/components/Icon";
 import {
   CTA,
-  DestinationTile,
+  LocationCard,
   ResortCard,
   SectionHeading,
   Trust,
@@ -43,9 +43,9 @@ export default async function Home() {
             href={destinations?.cta_url}
             label={destinations?.cta_label}
           />
-          <div className="destination-tiles">
+          <div className="home-destination-grid">
             {destinationList.map((l) => (
-              <DestinationTile
+              <LocationCard
                 key={l.id}
                 location={l}
                 count={stayCount(l.id)}
@@ -64,7 +64,7 @@ export default async function Home() {
         />
         <div className="stays-grid">
           {featuredStays.slice(0, 3).map((r) => (
-            <ResortCard key={r.id} resort={r} />
+            <ResortCard customer key={r.id} resort={r} />
           ))}
           {!featuredStays.length && (
             <div className="empty-state">
@@ -87,10 +87,7 @@ export default async function Home() {
             alt="A peaceful heritage courtyard and pool"
             sizes="(max-width:767px) 100vw, 50vw"
           />
-          <p className="image-note">
-            A little less hurry.
-            <br />A little more here.
-          </p>
+
         </div>
         <div className="story-copy">
           <p className="eyebrow">{story?.eyebrow}</p>

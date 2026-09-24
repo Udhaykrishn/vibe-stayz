@@ -38,7 +38,7 @@ export function pageMetadata(
       description: description || s.seo_description,
       images: [imageUrl],
     },
-    icons: { icon: s.favicon },
+    icons: { icon: "/images/favicon.svg" },
     robots: noindex ? { index: false, follow: true } : undefined,
   };
 }

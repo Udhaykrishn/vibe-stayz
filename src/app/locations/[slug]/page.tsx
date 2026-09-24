@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import PublicLayout from "@/components/PublicLayout";
 import Photo from "@/components/Photo";
+import { destinationImages } from "@/lib/destination-images";
 import { CTA, ResortCard, SectionHeading } from "@/components/Cards";
 import { publicData } from "@/services/data";
 import { pageMetadata } from "@/lib/metadata";
@@ -24,18 +25,19 @@ export default async function LocationPage({ params }: Props) {
   const data = await publicData();
   const l = data.locations.find((x) => x.slug === slug);
   if (!l) notFound();
+  const cover = l.cover_image || destinationImages[l.slug];
   const resorts = data.resorts.filter((r) => r.location_id === l.id);
   return (
     <PublicLayout data={data}>
       <section className="destination-hero">
-        <Photo
-          src={l.cover_image}
+        {cover && <Photo
+          src={cover}
           alt={l.image_alt || l.name}
           eager
           sizes="100vw"
-        />
+        />}
         <div className="container">
-          <p className="eyebrow">FIND YOUR SOMEWHERE · KERALA</p>
+          <a className="destination-back" href="/locations">All destinations</a>
           <h1>{l.name}</h1>
           <p>{l.subtitle}</p>
         </div>
@@ -55,11 +57,11 @@ export default async function LocationPage({ params }: Props) {
           <SectionHeading
             eyebrow="MAKE YOURSELF AT HOME"
             title={`Find your stay in ${l.name}`}
-            body={`${resorts.length} ${resorts.length === 1 ? "stay" : "stays"} to discover`}
+            body={resorts.length ? `${resorts.length} ${resorts.length === 1 ? "stay" : "stays"} to discover` : "A new destination for your next escape."}
           />
           <div className="stays-grid">
             {resorts.map((r) => (
-              <ResortCard key={r.id} resort={r} />
+              <ResortCard customer key={r.id} resort={r} />
             ))}
             {!resorts.length && (
               <div className="empty-state">

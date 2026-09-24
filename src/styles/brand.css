@@ -1,0 +1,15 @@
+/* Supplied Vibe Stayz wordmark: preserve its 1038:500 aspect ratio. */
+.brand { flex-shrink: 0; }
+.brand img.brand-logo { width: 130px; height: auto; border-radius: 0; }
+.footer-brand img.brand-logo { width: 180px; height: auto; border-radius: 0; }
+.admin-brand img.brand-logo { width: 95px; height: auto; border-radius: 0; }
+.login-brand-panel img.brand-logo { width: 180px; height: auto; border-radius: 0; }
+.site-header.transparent { background: linear-gradient(180deg, #203403e6, #20340366); }
+.site-header.transparent.scrolled { background: var(--deep); }
+.site-footer { color: #d5dfc6; }
+@media (max-width: 767px) {
+  .brand img.brand-logo { width: 108px; }
+  .footer-brand { grid-template-columns: 130px minmax(0, 1fr); gap: 20px; }
+  .footer-brand img.brand-logo { width: 130px; }
+  .login-brand-panel img.brand-logo { width: 130px; }
+}

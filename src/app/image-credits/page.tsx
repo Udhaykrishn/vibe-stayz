@@ -13,9 +13,10 @@ export default async function Credits() {
   const data = await publicData();
   return (
     <PublicLayout data={data}>
-      <div className="container section">
+      <div className="container section credits-page">
         <p className="eyebrow">WITH THANKS</p>
         <h1>Photography & image credits</h1>
+        <p className="credits-intro">The places, perspectives and creators behind our imagery.</p>
         <div className="credits-list">
           {credits.map((c) => (
             <div key={c.sourceUrl}>

@@ -27,7 +27,7 @@ export default async function Offers() {
         <section className="results-section">
           <div className="offers-grid">
             {data.offers.map((o) => (
-              <OfferCard key={o.id} offer={o} settings={data.settings} />
+              <OfferCard customer key={o.id} offer={o} settings={data.settings} />
             ))}
           </div>
           {!data.offers.length && (
